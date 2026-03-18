@@ -2,14 +2,14 @@
 
 Move code between git repositories without losing history.
 
-Monopoly is a thin CLI wrapper around [git-filter-repo](https://github.com/newren/git-filter-repo). All it does is provide a friendly interface for extracting code from one repo into another, including commit history. After the move, `git log`, `git blame`, and `git bisect` work across the boundary as if the code was always there.
+Monopoly is a thin CLI that copies code from one repo into another, including commit history. After the move, `git log`, `git blame`, and `git bisect` work as if the code was always there.
 
 Nothing is committed or pushed automatically. You review the staged changes and decide when to finalize.
 
 ## Prerequisites
 
 - **git** 2.22+
-- **Python 3** - needed by [git-filter-repo](https://github.com/newren/git-filter-repo)
+- **Python 3**
 
 ## Install
 
@@ -32,14 +32,14 @@ monopoly move <source> --to <repo> [--as <path>] [--dry-run]
 
 ## Examples
 
-Graduate a package out of a monorepo:
+Move a package out of a monorepo:
 
 ```bash
 cd my-monorepo
 npx monopoly move packages/auth --to ../auth-service --as auth
 ```
 
-Bring a module back into a monorepo:
+Move a module back into a monorepo:
 
 ```bash
 cd auth-service
@@ -52,32 +52,9 @@ Move a single file:
 npx monopoly move src/utils/logger.ts --to ../shared-lib --as logger.ts
 ```
 
-Preview first:
-
-```bash
-npx monopoly move packages/auth --to ../auth-service --as auth --dry-run
-```
-
 ## What happens after a move
 
-Monopoly stages the changes in the target repo and stops:
-
-```
-✓ Move staged in ../auth-service
-
-  Source:  packages/auth (14 commits extracted)
-  Target:  ../auth-service/auth
-  Seam:    staged (not yet committed)
-
-  Review the staged changes:
-    cd ../auth-service && git status
-
-  When ready:
-    git commit
-    git push
-```
-
-From there:
+Monopoly stages the changes in the target repo and stops. From there:
 
 1. Review with `git status` and `git diff`
 2. Commit: `git commit`
@@ -87,16 +64,6 @@ From there:
    git rm -r packages/auth
    git commit -m "chore: remove packages/auth (moved to auth-service)"
    ```
-
-## Safety
-
-If something is wrong, monopoly exits without making changes:
-
-- Target path already exists in the target repo
-- Target repo has uncommitted changes
-- Source path has no git history
-- Target is not a git repository
-- Required tools are missing or too old
 
 ## Monopoly does not
 
