@@ -6,7 +6,6 @@ import { git } from "../src/git";
 import { parseArgs } from "../src/args";
 import { validate } from "../src/validate";
 import { executeMove } from "../src/move";
-import { readManifest } from "../src/manifest";
 
 // --- Test helpers ---
 
@@ -106,13 +105,6 @@ describe("directory move", () => {
 
     // Extracted commits > 0
     expect(result.commitCount).toBeGreaterThan(0);
-
-    // .monopoly.json manifest was created and staged
-    const manifest = readManifest(target);
-    expect(manifest).not.toBeNull();
-    expect(manifest!.moves).toHaveLength(1);
-    expect(manifest!.moves[0].path).toBe("auth");
-    expect(manifest!.moves[0].from.path).toBe("packages/auth");
 
     // MERGE_MSG exists for the staged merge
     const gitDirResult = git(["rev-parse", "--git-dir"], target);
@@ -447,8 +439,8 @@ describe("round-trip (A → B → A)", () => {
   });
 });
 
-describe("manifest tracking", () => {
-  test("second move appends to existing manifest", () => {
+describe("multiple moves into same repo", () => {
+  test("can move two different paths into the same target", () => {
     const mono = path.join(tmpRoot, "mono");
     const target = path.join(tmpRoot, "target");
 
@@ -464,32 +456,7 @@ describe("manifest tracking", () => {
     runMove(path.join(mono, "packages/api"), target, "api");
     git(["commit", "-m", "monopoly: import api"], target);
 
-    const manifest = readManifest(target);
-    expect(manifest).not.toBeNull();
-    expect(manifest!.moves).toHaveLength(2);
-    expect(manifest!.moves[0].path).toBe("auth");
-    expect(manifest!.moves[1].path).toBe("api");
-  });
-
-  test("rejects duplicate move to same --as path", () => {
-    const mono = path.join(tmpRoot, "mono");
-    const target = path.join(tmpRoot, "target");
-
-    buildMonorepo(mono);
-    initRepo(target);
-    writeAndCommit(target, ".gitkeep", "", "chore: init");
-
-    // First move: auth → auth
-    runMove(path.join(mono, "packages/auth"), target, "auth");
-    git(["commit", "-m", "monopoly: import auth"], target);
-
-    // Delete the files so only manifest blocks it
-    git(["rm", "-rf", "auth"], target);
-    git(["commit", "-m", "chore: remove auth files"], target);
-
-    // Second move to same path should fail on manifest check
-    expect(() =>
-      runMove(path.join(mono, "packages/auth"), target, "auth")
-    ).toThrow("already has a move entry");
+    expect(fs.existsSync(path.join(target, "auth/index.ts"))).toBe(true);
+    expect(fs.existsSync(path.join(target, "api/index.ts"))).toBe(true);
   });
 });

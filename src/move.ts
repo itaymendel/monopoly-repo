@@ -2,7 +2,6 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import { git, filterRepo, getCurrentBranch, hasAnyCommits, countCommits, toGitPath } from "./git";
-import { updateManifest } from "./manifest";
 import type { ValidatedContext } from "./validate";
 import type { MoveArgs } from "./args";
 
@@ -183,26 +182,13 @@ function mergeIntoTarget(
     git(["remote", "remove", remoteName], ctx.targetRepoRoot);
   }
 
-  const timestamp = new Date().toISOString();
-  writeMergeMessage(targetAs, ctx, commitCount, timestamp);
-
-  updateManifest(ctx.targetRepoRoot, {
-    path: targetAs,
-    from: {
-      repo: ctx.sourceRepoRoot,
-      path: ctx.extractionPath,
-      head: ctx.sourceHead,
-      date: timestamp,
-    },
-    commits_extracted: commitCount,
-  });
+  writeMergeMessage(targetAs, ctx, commitCount);
 }
 
 function writeMergeMessage(
   targetAs: string,
   ctx: ValidatedContext,
-  commitCount: number,
-  timestamp: string
+  commitCount: number
 ): void {
   const sourceRepoName = path.basename(ctx.sourceRepoRoot);
   const msg = `monopoly: move ${sourceRepoName}:${ctx.extractionPath} → ${targetAs}
@@ -211,7 +197,6 @@ Source repo:   ${ctx.sourceRepoRoot}
 Source path:   ${ctx.extractionPath}
 Source HEAD:   ${ctx.sourceHead}
 Extracted:     ${commitCount} commits
-Timestamp:     ${timestamp}
 `;
 
   const gitDirResult = git(["rev-parse", "--git-dir"], ctx.targetRepoRoot);

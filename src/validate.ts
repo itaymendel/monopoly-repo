@@ -12,7 +12,6 @@ import {
   findRepoRoot,
   toGitPath,
 } from "./git";
-import { readManifest, hasEntryForPath } from "./manifest";
 import type { MoveArgs } from "./args";
 
 export interface ValidatedContext {
@@ -79,13 +78,6 @@ export function validate(args: MoveArgs): ValidatedContext {
   if (fs.existsSync(targetFullPath)) {
     throw new Error(
       `Target path already exists: ${args.to}/${args.as}. Remove it or choose a different --as path.`
-    );
-  }
-
-  const manifest = readManifest(targetRepoRoot);
-  if (hasEntryForPath(manifest, args.as)) {
-    throw new Error(
-      `"${args.as}" already has a move entry in .monopoly.json. Remove the entry or choose a different --as path.`
     );
   }
 

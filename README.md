@@ -114,7 +114,7 @@ Under the hood, monopoly runs a well-known sequence of git operations:
 3. Restructure files to match the desired target layout
 4. Fetch the filtered history into the target repo
 5. Merge with `--allow-unrelated-histories --no-commit`
-6. Write metadata to `.git/MERGE_MSG` and `.monopoly.json`
+6. Write seam metadata to `.git/MERGE_MSG`
 
 The merge commit acts as a **seam** - a traceable link between the old and new life of the code. All commits from the source are reachable in the target's history.
 

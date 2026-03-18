@@ -74,8 +74,7 @@ export function printDryRun(args: MoveArgs, ctx: ValidatedContext): void {
   3. Restructure extracted files for target path: ${args.as}
   4. Fetch into ${args.to} and merge with --allow-unrelated-histories
   5. Write seam metadata to .git/MERGE_MSG
-  6. Update .monopoly.json manifest
-  7. Stage all changes (no commit)
+  6. Stage all changes (no commit)
 
   Source repo:     ${ctx.sourceRepoRoot}
   Source path:     ${ctx.extractionPath}
