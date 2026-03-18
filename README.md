@@ -23,36 +23,15 @@ npx monopoly move <source> --to <repo>
 monopoly move <source> --to <repo> [--as <path>] [--dry-run]
 ```
 
-| Option | Description |
-|---|---|
-| `<source>` | File or directory to move (e.g. `packages/auth`) |
-| `--to <repo>` | Path to the target repository |
-| `--as <path>` | Where the code lands in the target (default: source basename) |
-| `--dry-run` | Preview what would happen without making changes |
-
-## Examples
-
-Move a package out of a monorepo:
-
 ```bash
 cd my-monorepo
-npx monopoly move packages/auth --to ../auth-service --as auth
-```
+npx monopoly move packages/auth --to ../auth-service --as auth          # Move a package from one repo to another
 
-Move a module back into a monorepo:
-
-```bash
 cd auth-service
-npx monopoly move auth --to ../my-monorepo --as packages/auth
+npx monopoly move auth --to ../my-monorepo --as packages/auth           # Move a package back into a monorepo
+
+npx monopoly move src/utils/logger.ts --to ../shared-lib --as logger.ts # Move a single file:
 ```
-
-Move a single file:
-
-```bash
-npx monopoly move src/utils/logger.ts --to ../shared-lib --as logger.ts
-```
-
-## What happens after a move
 
 Monopoly stages the changes in the target repo and stops. From there:
 
@@ -83,7 +62,7 @@ Under the hood, monopoly runs a well-known sequence of git operations:
 5. Merge with `--allow-unrelated-histories --no-commit`
 6. Write seam metadata to `.git/MERGE_MSG`
 
-The merge commit acts as a **seam** - a traceable link between the old and new life of the code. All commits from the source are reachable in the target's history.
+The merge commit acts as a traceable link between the old and new life of the code so all commits from the source are reachable in the target's history.
 
 ## Related tools
 
