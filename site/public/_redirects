@@ -1,0 +1,7 @@
+# Cloudflare Pages redirects — https://developers.cloudflare.com/pages/configuration/redirects/
+# Format: <source> <destination> <status>
+
+# Force the apex domain as canonical. Requires www.monopoly-repo.dev to be
+# attached as a custom domain on this Pages project, otherwise the request
+# never reaches Pages and this rule won't fire.
+https://www.monopoly-repo.dev/* https://monopoly-repo.dev/:splat 301
