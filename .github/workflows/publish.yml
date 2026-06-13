@@ -40,8 +40,11 @@ jobs:
       - name: Upgrade npm
         run: npm install -g npm@latest
 
+      # Not --frozen-lockfile: an auto-bumped workspace version makes bun.lock
+      # differ from package.json on every release, which a frozen install
+      # rejects. The CLI has no runtime deps, so a tolerant install is safe.
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install
 
       - name: Check whether this version is already published
         id: check
