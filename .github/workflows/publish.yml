@@ -1,0 +1,69 @@
+name: Publish to npm
+
+# Publishes the `monopoly-repo` CLI to npm whenever a merge to main changes the
+# package version. Authentication uses npm Trusted Publishing (OIDC) — there is
+# no NPM_TOKEN secret; GitHub mints a short-lived token at publish time and npm
+# attaches provenance automatically.
+#
+# One-time setup required before this works:
+#   1. Publish 0.1.0 manually once to create the package on npm.
+#   2. On npmjs.com, configure a GitHub Actions trusted publisher for this repo
+#      pointing at this workflow file (publish.yml).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "cli/**"
+      - ".github/workflows/publish.yml"
+  workflow_dispatch: # allow manual runs from the Actions tab
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for npm Trusted Publishing (OIDC)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.14.0" # Trusted Publishing requires Node >= 22.14.0
+          registry-url: "https://registry.npmjs.org"
+
+      # GitHub runners ship an older npm; Trusted Publishing needs >= 11.5.1.
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check whether this version is already published
+        id: check
+        working-directory: cli
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$NAME@$VERSION is already on npm — skipping publish."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Publishing $NAME@$VERSION."
+          fi
+
+      - name: Build npm bundle
+        if: steps.check.outputs.exists == 'false'
+        working-directory: cli
+        run: bun run build:npm
+
+      - name: Publish
+        if: steps.check.outputs.exists == 'false'
+        working-directory: cli
+        run: npm publish

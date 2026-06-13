@@ -1,6 +1,6 @@
 {
   "name": "monopoly-repo",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Move code between git repos without losing history",
   "type": "module",
   "license": "MIT",
