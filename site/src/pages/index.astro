@@ -1,0 +1,114 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      name: "mono-poly",
+      url: "https://monopoly-repo.dev/",
+      description:
+        "Pragmatic code re-organization across repositories. Start with a monorepo, expand to polyrepo, consolidate back; without losing git history.",
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: "monopoly",
+      applicationCategory: "DeveloperApplication",
+      operatingSystem: "macOS, Linux, Windows",
+      url: "https://monopoly-repo.dev/cli/",
+      description:
+        "A small CLI for moving files or directories between git repositories while preserving full commit history. git log, git blame, and git bisect keep working after the move.",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+      author: {
+        "@type": "Person",
+        name: "Itay Mendelawy",
+        url: "https://itaymendel.dev",
+      },
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="mono-poly - Pragmatic code re-organization across repositories."
+  description="Start with a monorepo, expand to polyrepo, consolidate back; without losing git history."
+>
+  <script
+    type="application/ld+json"
+    slot="head"
+    is:inline
+    set:html={JSON.stringify(structuredData)}
+  />
+  <section class="hero">
+    <h1>Mono-Poly</h1>
+    <p class="lede">Pragmatic code <i>re</i>-organization across repositories.</p>
+  </section>
+
+  <section class="intro">
+    <p>
+      <a href="/why">We've all been in monorepo vs polyrepo discussions</a>.
+      They all share the same hidden assumption: that it's a one-and-done
+      decision. But code structure should serve business demands and
+      organization structure &mdash; and those change.
+      <b>So never marry a specific method of code organization.</b>
+    </p>
+    <p>
+      In most cases just start coding a new thing in an existing repo. As
+      you learn more about business needs or the organization changes, consider moving it around.<br />
+      <b>Break a monorepo, merge two repos, move code between repos. Whatever.</b>
+    </p>
+  </section>
+
+  <section>
+    <h2>Git history</h2>
+    <p>
+      <i>"If I move code to another repo, I lose my git history"</i>. Well, no.
+      With <a href="https://github.com/newren/git-filter-repo"
+        ><code>git filter-repo</code></a
+      > and <code>git merge --allow-unrelated-histories</code>, code carries its
+      full commit history through every move (so <code>git blame</code> works). <a
+        href="/cli">Use this CLI tool if you want</a
+      >.
+    </p>
+  </section>
+
+  <section>
+    <h2>AI</h2>
+    <p>
+      AI agents work better with focused codebases. Noise in codebases may cause
+      AI to do things it shouldn't.
+    </p>
+  </section>
+
+  <section>
+    <h2>Business domains</h2>
+    <p>
+      New domains may appear, some will consolidate or flat out disappear. At times
+      side-concerns become core. Repo boundaries should track those shifts, not
+      freeze the state that was true 3 years ago.
+    </p>
+  </section>
+
+  <section>
+    <h2>Organization structure</h2>
+    <p>
+      <a href="https://en.wikipedia.org/wiki/Conway%27s_law">Conway's Law</a> is real,
+      and it impacts repo structure as well. Code location should match ownership.
+    </p>
+  </section>
+
+  <section>
+    <h2>Compromises</h2>
+    <p>
+      Moving code around means refactoring and introducing dependencies.
+      It's not a bad thing if it's for sake of business needs or organization structure.
+      Good engineering is all about making compromises.
+    </p>
+  </section>
+
+</BaseLayout>

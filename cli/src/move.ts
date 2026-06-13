@@ -1,7 +1,15 @@
 import fs from "fs";
 import path from "path";
 import os from "os";
-import { git, filterRepo, getCurrentBranch, hasAnyCommits, countCommits, toGitPath } from "./git";
+import {
+  git,
+  getCurrentBranch,
+  hasAnyCommits,
+  countCommits,
+  requireSuccess,
+  toGitPath,
+} from "./git";
+import { filterRepo } from "./filter-repo";
 import type { ValidatedContext } from "./validate";
 import type { MoveArgs } from "./args";
 
@@ -41,33 +49,32 @@ export function executeMove(args: MoveArgs, ctx: ValidatedContext): MoveResult {
 }
 
 function cloneAndFilter(tmpDir: string, ctx: ValidatedContext): string {
-  const cloneResult = git(
-    ["clone", "--single-branch", ctx.sourceRepoRoot, "extract"],
-    tmpDir
+  requireSuccess(
+    git(["clone", "--single-branch", ctx.sourceRepoRoot, "extract"], tmpDir),
+    "Failed to clone source repo"
   );
-  if (!cloneResult.success) {
-    throw new Error(`Failed to clone source repo: ${cloneResult.stderr}`);
-  }
 
   const extractDir = path.join(tmpDir, "extract");
 
-  const emailResult = git(["config", "user.email", "monopoly@local"], extractDir);
-  if (!emailResult.success) {
-    throw new Error(`Failed to configure git identity: ${emailResult.stderr}`);
-  }
-  const nameResult = git(["config", "user.name", "monopoly"], extractDir);
-  if (!nameResult.success) {
-    throw new Error(`Failed to configure git identity: ${nameResult.stderr}`);
-  }
+  // Set a local identity so the restructure commit below doesn't fail when
+  // the user has no global git identity configured.
+  requireSuccess(
+    git(["config", "user.email", "monopoly@local"], extractDir),
+    "Failed to configure git identity"
+  );
+  requireSuccess(
+    git(["config", "user.name", "monopoly"], extractDir),
+    "Failed to configure git identity"
+  );
 
   const filterFlag = ctx.isDirectory ? "--subdirectory-filter" : "--path";
-  const filterResult = filterRepo(
-    [filterFlag, ctx.extractionPath, "--force", "--quiet"],
-    extractDir
+  requireSuccess(
+    filterRepo(
+      [filterFlag, ctx.extractionPath, "--force", "--quiet"],
+      extractDir
+    ),
+    "git-filter-repo failed"
   );
-  if (!filterResult.success) {
-    throw new Error(`git-filter-repo failed: ${filterResult.stderr}`);
-  }
 
   return extractDir;
 }
@@ -86,19 +93,19 @@ function restructureDirectory(extractDir: string, targetPath: string): void {
   );
 
   if (entries.length > 0) {
-    const mvResult = git(["mv", ...entries, targetPath], extractDir);
-    if (!mvResult.success) {
-      throw new Error(`Failed to restructure files: ${mvResult.stderr}`);
-    }
+    requireSuccess(
+      git(["mv", ...entries, targetPath], extractDir),
+      "Failed to restructure files"
+    );
   }
 
-  const commitResult = git(
-    ["commit", "-m", "chore(monopoly): restructure for target path"],
-    extractDir
+  requireSuccess(
+    git(
+      ["commit", "-m", "chore(monopoly): restructure for target path"],
+      extractDir
+    ),
+    "Failed to commit restructured files"
   );
-  if (!commitResult.success) {
-    throw new Error(`Failed to commit restructured files: ${commitResult.stderr}`);
-  }
 }
 
 /**
@@ -117,18 +124,18 @@ function restructureFile(
     fs.mkdirSync(path.join(extractDir, targetDir), { recursive: true });
   }
 
-  const mvResult = git(["mv", originalPath, targetName], extractDir);
-  if (!mvResult.success) {
-    throw new Error(`Failed to restructure file: ${mvResult.stderr}`);
-  }
-
-  const commitResult = git(
-    ["commit", "-m", "chore(monopoly): restructure for target path"],
-    extractDir
+  requireSuccess(
+    git(["mv", originalPath, targetName], extractDir),
+    "Failed to restructure file"
   );
-  if (!commitResult.success) {
-    throw new Error(`Failed to commit restructured file: ${commitResult.stderr}`);
-  }
+
+  requireSuccess(
+    git(
+      ["commit", "-m", "chore(monopoly): restructure for target path"],
+      extractDir
+    ),
+    "Failed to commit restructured file"
+  );
 }
 
 function mergeIntoTarget(
@@ -145,23 +152,22 @@ function mergeIntoTarget(
   }
 
   const remoteName = "monopoly-temp";
-  const addResult = git(
-    ["remote", "add", remoteName, extractDir],
-    ctx.targetRepoRoot
+  requireSuccess(
+    git(["remote", "add", remoteName, extractDir], ctx.targetRepoRoot),
+    "Failed to add temp remote"
   );
-  if (!addResult.success) {
-    throw new Error(`Failed to add temp remote: ${addResult.stderr}`);
-  }
 
   try {
-    const fetchResult = git(["fetch", remoteName], ctx.targetRepoRoot);
-    if (!fetchResult.success) {
-      throw new Error(
-        `Failed to fetch from temp clone: ${fetchResult.stderr}`
-      );
-    }
+    requireSuccess(
+      git(["fetch", remoteName], ctx.targetRepoRoot),
+      "Failed to fetch from temp clone"
+    );
 
     const extractBranch = getCurrentBranch(extractDir);
+    // --allow-unrelated-histories is the load-bearing flag: by default git
+    // refuses to merge histories with no common ancestor (a footgun in normal
+    // use), but here it's exactly what we want — grafting a sub-history from
+    // the source repo onto the target's unrelated history.
     const mergeResult = git(
       [
         "merge",
@@ -172,6 +178,9 @@ function mergeIntoTarget(
       ctx.targetRepoRoot
     );
 
+    // git lacks a clean exit-code distinction between "merge had conflicts"
+    // and "merge failed for other reasons", so we string-match stderr. This
+    // is the standard workaround.
     if (mergeResult.stderr.includes("CONFLICT")) {
       git(["merge", "--abort"], ctx.targetRepoRoot);
       throw new Error(

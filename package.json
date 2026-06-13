@@ -1,22 +1,20 @@
 {
-  "name": "monopoly",
-  "version": "0.1.0",
-  "description": "Move code between git repos without losing history",
+  "name": "monopoly-repo",
+  "version": "0.0.0",
+  "private": true,
   "type": "module",
-  "bin": {
-    "monopoly": "dist/cli.js"
-  },
-  "files": [
-    "dist/cli.js"
+  "workspaces": [
+    "cli",
+    "site"
   ],
   "scripts": {
-    "dev": "bun run src/main.ts",
-    "build": "bun build src/main.ts --compile --outfile dist/monopoly",
-    "build:npm": "bun scripts/build-npm.ts",
-    "prepublishOnly": "bun scripts/build-npm.ts",
-    "test": "bun test"
-  },
-  "devDependencies": {
-    "bun-types": "^1.3.10"
+    "dev": "cd cli && bun run dev",
+    "build": "cd cli && bun run build",
+    "build:npm": "cd cli && bun run build:npm",
+    "test": "cd cli && bun test",
+    "site:dev": "cd site && bun run dev",
+    "site:build": "cd site && bun run build",
+    "site:preview": "cd site && bun run preview",
+    "site:check": "cd site && bun run check"
   }
 }

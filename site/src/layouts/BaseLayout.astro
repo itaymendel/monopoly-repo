@@ -1,0 +1,117 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = "You don't have to choose between monorepo and polyrepo.",
+} = Astro.props;
+
+const pathname = Astro.url.pathname.replace(/\/$/, "") || "/";
+const pageSegment = pathname === "/" ? "" : pathname.slice(1);
+
+// Trailing slash to match the sitemap's URLs — canonical and sitemap
+// must agree or Google treats them as separate pages.
+const canonical = new URL(
+  pathname === "/" ? "/" : `${pathname}/`,
+  Astro.site
+);
+const ogImage = new URL("/og.png", Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="author" content="Itay Mendelawy" />
+    <!-- Let Google index/follow and show large image previews in Search & Discover. -->
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="theme-color" content="#fbf6ec" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="mono-poly" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="mono-poly: move code between git repositories without losing history"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta
+      name="twitter:image:alt"
+      content="mono-poly: move code between git repositories without losing history"
+    />
+    <meta name="twitter:creator" content="@itaymendel" />
+    <title>{title}</title>
+    <slot name="head" />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav>
+        <span class="brand-block">
+          <a href="/" class="brand">mono-poly</a>
+          {pageSegment && <span class="path-segment">/{pageSegment}</span>}
+        </span>
+        <a
+          href="/use-cases"
+          class:list={["muted", { active: pathname === "/use-cases" }]}
+          >use cases</a
+        >
+        <a
+          href="/how"
+          class:list={["muted", { active: pathname === "/how" }]}
+          >how</a
+        >
+        <a
+          href="/example"
+          class:list={["muted", { active: pathname === "/example" }]}
+          >example</a
+        >
+        <a
+          href="/cli"
+          class:list={["muted", { active: pathname === "/cli" }]}>cli</a
+        >
+        <a
+          href="/why"
+          class:list={["muted", { active: pathname === "/why" }]}>why</a
+        >
+        <a
+          href="https://github.com/itaymendel/monopoly-repo"
+          class="muted spacer">GitHub</a
+        >
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <p class="links">
+        <a href="https://itaymendel.dev">itaymendel.dev</a>
+        <a href="https://github.com/itaymendel">github</a>
+        <a href="https://linkedin.com/in/itay-mendelawy-34348161">linkedin</a>
+        <a href="https://x.com/itaymendel">x</a>
+      </p>
+    </footer>
+  </body>
+</html>

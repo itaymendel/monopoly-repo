@@ -1,0 +1,123 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="mono-poly use cases - from monorepo to polyrepo and back again."
+  description="Graduate, merge back, hand off, extract shared, split hot from cold, archive in place."
+>
+  <section class="hero">
+    <h1>Use cases</h1>
+    <p class="lede">
+      Some are valid business or organization needs, some are fun and interesting.
+    </p>
+  </section>
+
+  <section>
+    <h2>Open source</h2>
+    <p>
+      "Ooo this is a nice utility we have in our code base, I bet others will like it!"
+    </p>
+    <p>
+      <i>Move code to a new repo to make sure you don't expose anything.</i>
+    </p>
+  </section>
+
+  <section>
+    <h2>Graduate</h2>
+    <p>
+      Built a payment service and app in the monorepo. Eventually, a team
+      forms around it.
+    </p>
+    <p>
+      <i>Team wants full autonomy, so we need to move the code to its own repo.</i>
+    </p>
+  </section>
+
+  <section>
+    <h2>Spin out</h2>
+    <p>
+      That small feature turned out to be a real business driver.
+    </p>
+    <p>
+      <i
+        >Move the code to its own repo so the new business unit gets a clean
+        home.</i
+      >
+    </p>
+  </section>
+
+  <section>
+    <h2>Different stack</h2>
+    <p>
+      The new service is in Rust. The rest of the monorepo is Node.
+    </p>
+    <p>
+      <i
+        >Give that service its own repo.</i
+      >
+    </p>
+  </section>
+
+  <section>
+    <h2>Speed up CI</h2>
+    <p>
+      Monorepo CI takes 25 minutes because one app pulls in a heavy ML
+      pipeline nobody else needs.
+    </p>
+    <p>
+      <i>Move it out. Everyone else's PRs go green in 3.</i>
+    </p>
+  </section>
+
+  <section>
+    <h2>Merge</h2>
+    <p>
+      The company just bought a competitor. We need to consolidate codebases
+      and merge workflows.
+    </p>
+    <p>
+      <i>Polyrepo is overhead. One repo - less pain.</i>
+    </p>
+  </section>
+
+  <section>
+    <h2>Hand off</h2>
+    <p>
+      Search was built by Platform but is now owned by Discovery.
+    </p>
+    <p>
+      <i>Code location follows ownership.</i>
+    </p>
+  </section>
+
+  <section>
+    <h2>Extract shared</h2>
+    <p>
+      Three projects each maintain their own <code>dateFormat()</code>.
+    </p>
+    <p>
+      <i>Pull the canonical version into the shared-lib repo.</i>
+    </p>
+  </section>
+
+  <section>
+    <h2>Split hot from cold</h2>
+    <p>
+      Legacy admin tools haven't changed in 18 months. No future roadmap work.
+    </p>
+    <p>
+      <i>Move them to a quiet repo.</i>
+    </p>
+  </section>
+
+  <section>
+    <h2>Archive in place</h2>
+    <p>
+      Deprecated payments-v1 is unused but must be retained.
+    </p>
+    <p>
+      <i>Move it to a frozen repo so it's out of the way.</i>
+    </p>
+  </section>
+</BaseLayout>

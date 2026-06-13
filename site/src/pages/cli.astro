@@ -1,0 +1,133 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="mono-poly CLI - move files between repos with git history"
+  description="monopoly is a small CLI for moving files or directories between local git repos. Full commit history carries through every move."
+>
+  <section class="hero">
+    <h1>CLI</h1>
+    <p class="lede">
+      monopoly is a small CLI for moving files or directories between local git
+      repos. Full commit history carries through every move.
+    </p>
+  </section>
+
+  <section>
+    <h2>Synopsis</h2>
+    <pre><code>npx monopoly move &lt;source&gt; --to &lt;repo&gt; [--as &lt;path&gt;] [--dry-run]</code></pre>
+  </section>
+
+  <section>
+    <h2>Options</h2>
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>&lt;source&gt;</code></td>
+          <td>File or directory to move (e.g. <code>packages/auth</code>)</td>
+        </tr>
+        <tr>
+          <td><code>--to &lt;repo&gt;</code></td>
+          <td>Path to a locally cloned target repository</td>
+        </tr>
+        <tr>
+          <td><code>--as &lt;path&gt;</code></td>
+          <td>Target path inside the repo (default: source basename)</td>
+        </tr>
+        <tr>
+          <td><code>--dry-run</code></td>
+          <td>Show what would happen without making changes</td>
+        </tr>
+        <tr>
+          <td><code>-h, --help</code></td>
+          <td>Show help</td>
+        </tr>
+        <tr>
+          <td><code>-v, --version</code></td>
+          <td>Show version</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Examples</h2>
+
+    <p>Graduate a package out of a monorepo:</p>
+    <pre><code>cd my-monorepo
+npx monopoly move packages/auth --to ../auth-service --as auth</code></pre>
+
+    <p>Merge a graduated repo back into a monorepo:</p>
+    <pre><code>cd auth-service
+npx monopoly move auth --to ../my-monorepo --as packages/auth</code></pre>
+
+    <p>Hand code off from one team's repo to another:</p>
+    <pre><code>cd platform-repo
+npx monopoly move src/search --to ../discovery-repo --as src/search</code></pre>
+
+    <p>Extract a shared utility into a shared-lib repo:</p>
+    <pre><code>npx monopoly move src/logger.ts --to ../shared</code></pre>
+
+    <p>Dry-run first to see what will happen:</p>
+    <pre><code>npx monopoly move packages/auth --to ../auth-service --dry-run</code></pre>
+  </section>
+
+  <section>
+    <h2>After a move</h2>
+    <p>
+      It's up to you to integrate the code well, then <code
+        >git commit && git push</code
+      >.
+    </p>
+    <p>
+      If you still need the functionality in the source repo, <strong
+        >introduce a dependency</strong
+      > as a package or a runtime service.
+    </p>
+    <p>
+      monopoly does not delete from the source repo. It will print the <code
+        >git rm</code
+      > command for you to run.
+    </p>
+    <p>
+      <a href="/how#squash-merges"><strong>Don't squash the monopoly PR when it lands on your main branch.</strong></a>
+    </p>
+  </section>
+
+  <section>
+    <h2>Undo a move</h2>
+    <p>If you haven't committed yet:</p>
+    <pre><code>cd target-repo
+git merge --abort
+# then manually delete the moved files</code></pre>
+
+    <p>If you already committed, use the standard reset flow:</p>
+    <pre><code>git reset --soft HEAD~1   # undo the commit, keep files staged
+git reset HEAD            # unstage everything
+git checkout .            # discard the files</code></pre>
+  </section>
+
+  <section>
+    <h2>What monopoly doesn't do</h2>
+    <ul>
+      <li>Commit or push.</li>
+      <li>Delete from the source repo.</li>
+      <li>Resolve conflicts.</li>
+      <li>Touch remotes.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Prerequisites</h2>
+    <ul>
+      <li>git 2.22 or later</li>
+      <li>
+        Python 3
+      </li>
+    </ul>
+  </section>
+</BaseLayout>
