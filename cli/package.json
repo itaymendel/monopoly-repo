@@ -1,14 +1,38 @@
 {
-  "name": "monopoly",
+  "name": "monopoly-repo",
   "version": "0.1.0",
   "description": "Move code between git repos without losing history",
   "type": "module",
+  "license": "MIT",
+  "homepage": "https://monopoly-repo.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itaymendel/monopoly-repo.git",
+    "directory": "cli"
+  },
+  "bugs": {
+    "url": "https://github.com/itaymendel/monopoly-repo/issues"
+  },
+  "keywords": [
+    "git",
+    "monorepo",
+    "polyrepo",
+    "git-filter-repo",
+    "history",
+    "cli"
+  ],
   "bin": {
     "monopoly": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "files": [
     "dist/cli.js"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "bun run src/main.ts",
     "build": "bun build src/main.ts --compile --outfile dist/monopoly",

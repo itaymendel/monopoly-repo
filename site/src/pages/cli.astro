@@ -16,7 +16,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   <section>
     <h2>Synopsis</h2>
-    <pre><code>npx monopoly move &lt;source&gt; --to &lt;repo&gt; [--as &lt;path&gt;] [--dry-run]</code></pre>
+    <pre><code>npx monopoly-repo move &lt;source&gt; --to &lt;repo&gt; [--as &lt;path&gt;] [--dry-run]</code></pre>
   </section>
 
   <section>
@@ -59,21 +59,21 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     <p>Graduate a package out of a monorepo:</p>
     <pre><code>cd my-monorepo
-npx monopoly move packages/auth --to ../auth-service --as auth</code></pre>
+npx monopoly-repo move packages/auth --to ../auth-service --as auth</code></pre>
 
     <p>Merge a graduated repo back into a monorepo:</p>
     <pre><code>cd auth-service
-npx monopoly move auth --to ../my-monorepo --as packages/auth</code></pre>
+npx monopoly-repo move auth --to ../my-monorepo --as packages/auth</code></pre>
 
     <p>Hand code off from one team's repo to another:</p>
     <pre><code>cd platform-repo
-npx monopoly move src/search --to ../discovery-repo --as src/search</code></pre>
+npx monopoly-repo move src/search --to ../discovery-repo --as src/search</code></pre>
 
     <p>Extract a shared utility into a shared-lib repo:</p>
-    <pre><code>npx monopoly move src/logger.ts --to ../shared</code></pre>
+    <pre><code>npx monopoly-repo move src/logger.ts --to ../shared</code></pre>
 
     <p>Dry-run first to see what will happen:</p>
-    <pre><code>npx monopoly move packages/auth --to ../auth-service --dry-run</code></pre>
+    <pre><code>npx monopoly-repo move packages/auth --to ../auth-service --dry-run</code></pre>
   </section>
 
   <section>

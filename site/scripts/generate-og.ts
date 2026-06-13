@@ -43,7 +43,7 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" v
   <line x1="80" y1="302" x2="1120" y2="302" stroke="${BORDER}" stroke-width="2"/>
 
   <text x="116" y="358" font-family="SFMono-Regular, Menlo, monospace" font-size="28">
-    <tspan fill="${PROMPT}">$ </tspan><tspan fill="${FG}">npx monopoly move </tspan><tspan fill="${ACCENT}">packages/auth</tspan><tspan fill="${FG}"> --to </tspan><tspan fill="${ACCENT}">../api</tspan>
+    <tspan fill="${PROMPT}">$ </tspan><tspan fill="${FG}">npx monopoly-repo move </tspan><tspan fill="${ACCENT}">packages/auth</tspan><tspan fill="${FG}"> --to </tspan><tspan fill="${ACCENT}">../api</tspan>
   </text>
   <text x="116" y="408" font-family="SFMono-Regular, Menlo, monospace" font-size="24" fill="${MUTED}">moved 4 commits · git log, git blame, git bisect still work</text>
 

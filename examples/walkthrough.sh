@@ -15,7 +15,7 @@ cd#!/usr/bin/env bash
 #
 # Requirements:
 #   • git ≥ 2.22
-#   • monopoly on PATH  (npm i -g monopoly)
+#   • monopoly on PATH  (npm i -g monopoly-repo)
 #       — override the binary by exporting MONOPOLY_BIN
 #   • Python 3 the first time (mono-poly auto-fetches git-filter-repo into
 #     ~/.cache/monopoly/ if it's not already on the system).
@@ -57,7 +57,7 @@ cmd()    { printf '%s$ %s%s\n' "$C_PROMPT" "$*" "$C_RESET"; "$@"; }
 
 if ! command -v "$MONOPOLY" >/dev/null 2>&1 && [ ! -x "$MONOPOLY" ]; then
   echo "monopoly not found." >&2
-  echo "  Install:  npm i -g monopoly" >&2
+  echo "  Install:  npm i -g monopoly-repo" >&2
   echo "  Or set MONOPOLY_BIN to the path of a built binary." >&2
   exit 1
 fi
