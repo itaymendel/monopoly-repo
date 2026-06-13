@@ -1,0 +1,20 @@
+# Cloudflare Pages headers — https://developers.cloudflare.com/pages/configuration/headers/
+# Rules are matched top-to-bottom; later, more specific paths layer onto /*.
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+
+# Astro fingerprints these filenames (content hash baked in), so a changed
+# file gets a new name — safe to cache for a year as immutable.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Static assets that keep stable names — cache, but allow revalidation.
+/favicon.svg
+  Cache-Control: public, max-age=86400
+/og.png
+  Cache-Control: public, max-age=86400
