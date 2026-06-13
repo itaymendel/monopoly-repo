@@ -4,11 +4,18 @@
  */
 import fs from "fs";
 
+const pkg = JSON.parse(fs.readFileSync("package.json", "utf-8"));
+
 const result = await Bun.build({
   entrypoints: ["src/main.ts"],
   outdir: "dist",
   target: "node",
   naming: "cli.js",
+  // Inline the package version so `monopoly --version` always matches the
+  // published package, rather than a hardcoded constant that drifts.
+  define: {
+    "process.env.MONOPOLY_VERSION": JSON.stringify(pkg.version),
+  },
 });
 
 if (!result.success) {
