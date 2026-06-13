@@ -29,7 +29,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
 
   const command = argv[0];
   if (command !== "move") {
-    throw new Error(`Unknown command: ${command}. Run monopoly --help for usage.`);
+    throw usageError(`Unknown command: ${command}.`);
   }
 
   const rest = argv.slice(1);
@@ -39,30 +39,24 @@ export function parseArgs(argv: string[]): ParsedArgs {
   let dryRun = false;
 
   for (let i = 0; i < rest.length; i++) {
-    const arg = rest[i];
+    const arg = rest[i]!;
     if (arg === "--to") {
-      to = rest[++i];
-      if (!to) throw new Error("--to requires a value.");
+      to = takeValue("--to", rest, ++i);
     } else if (arg === "--as") {
-      as = rest[++i];
-      if (!as) throw new Error("--as requires a value.");
+      as = takeValue("--as", rest, ++i);
     } else if (arg === "--dry-run") {
       dryRun = true;
     } else if (arg.startsWith("-")) {
-      throw new Error(`Unknown option: ${arg}. Run monopoly --help for usage.`);
+      throw usageError(`Unknown option: ${arg}.`);
     } else if (!source) {
       source = arg;
     } else {
-      throw new Error(`Unexpected argument: ${arg}. Run monopoly --help for usage.`);
+      throw usageError(`Unexpected argument: ${arg}.`);
     }
   }
 
-  if (!source) {
-    throw new Error("Missing <source> argument. Run monopoly --help for usage.");
-  }
-  if (!to) {
-    throw new Error("Missing --to <repo> option. Run monopoly --help for usage.");
-  }
+  if (!source) throw usageError("Missing <source> argument.");
+  if (!to) throw usageError("Missing --to <repo> option.");
 
   return {
     kind: "move",
@@ -71,4 +65,14 @@ export function parseArgs(argv: string[]): ParsedArgs {
     as: as ?? path.basename(source),
     dryRun,
   };
+}
+
+function usageError(msg: string): Error {
+  return new Error(`${msg} Run monopoly --help for usage.`);
+}
+
+function takeValue(name: string, rest: string[], i: number): string {
+  const value = rest[i];
+  if (!value) throw usageError(`${name} requires a value.`);
+  return value;
 }

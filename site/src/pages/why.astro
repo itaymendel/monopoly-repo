@@ -1,0 +1,34 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="mono-poly - why"
+  description="Uhhh I got tired of monorepo vs polyrepo discussions."
+>
+  <section class="hero">
+    <h1>Why</h1>
+    <p class="lede">Uhhh I got tired of monorepo vs polyrepo discussions.</p>
+  </section>
+
+  <section>
+    <p>
+      We've all been in many "monorepo vs polyrepo" discussions. Given a
+      specific set of constraints and requirements, one is better "right now",
+      but reality shifts. For me, the missing link was this: we need a way to
+      make sure we are not locked into a specific reality.<br />
+      Code organization should adapt to our needs.
+    </p>
+    <p>
+      The one argument that always blocked a pragmatic "let's move code around"
+      approach was "but we must keep code history". So in my case, I built a
+      script that solved the git-history question. We used it in several
+      projects and found it useful.
+    </p>
+    <p>
+      Script is now bundled to this simple CLI for others. Maybe some
+      like-minded engineers think the same, or are at least willing to
+      experiment a little :)
+    </p>
+  </section>
+</BaseLayout>

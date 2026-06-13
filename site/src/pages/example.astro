@@ -1,0 +1,267 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="mono-poly example flow"
+  description="A full walkthrough: a single file moved from app-monolith, shared-utils, date-fmt and back to app-monolith. Hops preserve authorship and history."
+>
+  <section class="hero">
+    <h1>Example</h1>
+    <p class="lede">
+      Full walkthrough of using monopoly for moving file while preserving history.
+    </p>
+  </section>
+
+  <section>
+    <p>
+      Everything below is real output from
+      <a
+        href="https://github.com/itaymendel/monopoly-repo/blob/main/examples/walkthrough.sh"
+        ><code>examples/walkthrough.sh</code></a
+      > — a bash script that builds three throwaway git repos and runs
+      <code>monopoly move</code> three times. Try it:
+    </p>
+    <pre><code>curl -fsSL https://raw.githubusercontent.com/itaymendel/monopoly-repo/main/examples/walkthrough.sh | bash</code></pre>
+  </section>
+
+  <section>
+    <h2>Three repos, three engineers</h2>
+    <table>
+      <thead>
+        <tr><th>Repo</th><th>What it is</th><th>Author</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>app-monolith</code></td>
+          <td>The big in-house app. <code>dateFormat()</code> was born here.</td>
+          <td>Alice</td>
+        </tr>
+        <tr>
+          <td><code>shared-utils</code></td>
+          <td>A small library repo. Other services depend on it.</td>
+          <td>Bob</td>
+        </tr>
+        <tr>
+          <td><code>date-fmt</code></td>
+          <td>An open-source npm package. Brand-new.</td>
+          <td>Carol</td>
+        </tr>
+      </tbody>
+    </table>
+    <figure class="diagram">
+      <div class="frame">
+        <svg
+          viewBox="0 0 720 220"
+          xmlns="http://www.w3.org/2000/svg"
+          role="img"
+          aria-label="Three repos arranged in a loop. dateFormat.ts travels app-monolith to shared-utils to date-fmt and back to app-monolith. Each hop adds commits."
+        >
+          <style>
+            .box { fill: var(--bg); stroke: var(--border); stroke-width: 1; }
+            .h { font: 600 10px ui-monospace, Menlo, monospace; fill: var(--fg-muted); letter-spacing: 0.08em; }
+            .t { font: 11px ui-monospace, Menlo, monospace; fill: var(--fg); }
+            .t-mut { fill: var(--fg-muted); }
+            .t-hi { fill: var(--highlight); font-weight: 600; }
+            .arr { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+            .arr-h { fill: var(--accent); }
+            .a-lbl { font: 10px ui-monospace, Menlo, monospace; fill: var(--accent); }
+            .a-sub { font: 10px ui-monospace, Menlo, monospace; fill: var(--fg-muted); }
+            .step { font: 600 11px ui-monospace, Menlo, monospace; fill: var(--prompt); }
+          </style>
+
+          <!-- Repo A -->
+          <rect class="box" x="0" y="40" width="200" height="100" rx="6"></rect>
+          <text class="h" x="14" y="62">APP-MONOLITH</text>
+          <text class="t t-hi" x="14" y="86">src/dateFormat.ts</text>
+          <text class="t t-mut" x="14" y="104">Alice: 3 commits</text>
+
+          <!-- Arrow A -> B -->
+          <text class="step" x="230" y="68" text-anchor="middle">1</text>
+          <line class="arr" x1="205" y1="90" x2="252" y2="90"></line>
+          <polygon class="arr-h" points="260,90 250,86 250,94"></polygon>
+          <text class="a-lbl" x="230" y="108" text-anchor="middle">graduate</text>
+
+          <!-- Repo B -->
+          <rect class="box" x="260" y="40" width="200" height="100" rx="6"></rect>
+          <text class="h" x="274" y="62">SHARED-UTILS</text>
+          <text class="t t-hi" x="274" y="86">src/dateFormat.ts</text>
+          <text class="t t-mut" x="274" y="104">Bob: +2 commits</text>
+
+          <!-- Arrow B -> C -->
+          <text class="step" x="490" y="68" text-anchor="middle">2</text>
+          <line class="arr" x1="465" y1="90" x2="512" y2="90"></line>
+          <polygon class="arr-h" points="520,90 510,86 510,94"></polygon>
+          <text class="a-lbl" x="490" y="108" text-anchor="middle">spin out</text>
+
+          <!-- Repo C -->
+          <rect class="box" x="520" y="40" width="200" height="100" rx="6"></rect>
+          <text class="h" x="534" y="62">DATE-FMT (OSS)</text>
+          <text class="t t-hi" x="534" y="86">src/dateFormat.ts</text>
+          <text class="t t-mut" x="534" y="104">Carol: +2 commits</text>
+
+          <!-- Round-trip arrow C -> A -->
+          <text class="step" x="360" y="200" text-anchor="middle">3</text>
+          <path class="arr" d="M 620 140 C 620 195, 100 195, 100 140"></path>
+          <polygon class="arr-h" points="100,140 96,150 104,150"></polygon>
+          <text class="a-lbl" x="360" y="184" text-anchor="middle">round trip — vendor back</text>
+        </svg>
+      </div>
+      <figcaption>
+        Three hops, three authors. The file ends back where it started.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Setup</h2>
+    <pre><code>$ tree /tmp/monopoly-demo-run -L 2 --noreport
+/tmp/monopoly-demo-run
+├── app-monolith
+│   ├── README.md
+│   ├── src/billing.ts
+│   ├── src/billing.test.ts
+│   └── src/dateFormat.ts        ← Alice's 3 commits
+├── shared-utils
+│   ├── README.md
+│   ├── src/cache.ts
+│   └── src/throttle.ts
+└── date-fmt
+    └── (empty init commit)</code></pre>
+  </section>
+
+  <section>
+    <h2>Hop 1 — app-monolith → shared-utils</h2>
+    <p>
+      Three teams started copy-pasting <code>dateFormat</code>.
+      <i>Graduate it into the shared library.</i>
+    </p>
+    <pre><code>$ cd app-monolith
+$ monopoly move src/dateFormat.ts --to ../shared-utils --as src/dateFormat.ts
+✓ Move staged in ../shared-utils
+
+  Source:  src/dateFormat.ts (3 commits extracted)
+  Target:  ../shared-utils/src/dateFormat.ts
+  Seam:    staged (not yet committed)</code></pre>
+    <p>
+      The merge is staged, not committed — that's on purpose, so you can review.
+      Finalise on the target. Delete on the source.
+    </p>
+    <pre><code>$ cd ../shared-utils && git commit --no-edit
+$ cd ../app-monolith && git rm src/dateFormat.ts
+$ git commit -m "chore: dateFormat moved to shared-utils"</code></pre>
+    <p>A couple of follow-up edits later:</p>
+    <pre><code>$ cd shared-utils && git log --follow --oneline -- src/dateFormat.ts
+44644d9 chore(dateFormat): strict-mode types               ← Bob
+31d8035 fix(dateFormat): tighten DST/timezone edges        ← Bob
+831317e monopoly: move app-monolith:src/dateFormat.ts → src/dateFormat.ts
+4526e9e feat(util): dateFormat supports relative time strings  ← Alice
+c483e41 feat(util): dateFormat handles unix timestamps         ← Alice
+4f0178b feat(util): add dateFormat()                            ← Alice</code></pre>
+  </section>
+
+  <section>
+    <h2>Hop 2 — shared-utils → date-fmt</h2>
+    <p>
+      Other companies want it.
+      <i>Spin it out as its own OSS package.</i>
+    </p>
+    <pre><code>$ cd shared-utils
+$ monopoly move src/dateFormat.ts --to ../date-fmt --as src/dateFormat.ts
+✓ Move staged in ../date-fmt
+
+  Source:  src/dateFormat.ts (5 commits extracted)
+  Target:  ../date-fmt/src/dateFormat.ts</code></pre>
+    <p>Same finalise / delete dance. A few OSS-flavoured commits on top:</p>
+    <pre><code>$ cd date-fmt && git log --follow --oneline -- src/dateFormat.ts
+0ea568b fix: throw on null/undefined input                      ← Carol
+939cac3 feat: i18n locale support                                ← Carol
+abc9faf monopoly: move shared-utils:src/dateFormat.ts → src/dateFormat.ts
+ba6a721 chore(dateFormat): strict-mode types                    ← Bob
+19bf9f5 fix(dateFormat): tighten DST/timezone edges             ← Bob
+4526e9e feat(util): dateFormat supports relative time strings   ← Alice
+c483e41 feat(util): dateFormat handles unix timestamps          ← Alice
+4f0178b feat(util): add dateFormat()                             ← Alice</code></pre>
+  </section>
+
+  <section>
+    <h2>Hop 3 — date-fmt → app-monolith    <em>// round trip</em></h2>
+    <p>
+      The monolith needs an emergency fix the OSS release doesn't have yet.
+      <i>Vendor it back in. OSS stays upstream.</i>
+    </p>
+    <pre><code>$ cd date-fmt
+$ monopoly move src/dateFormat.ts --to ../app-monolith --as src/dateFormat.ts
+✓ Move staged in ../app-monolith
+
+  Source:  src/dateFormat.ts (9 commits extracted)
+  Target:  ../app-monolith/src/dateFormat.ts</code></pre>
+    <p>Finalise the merge in <code>app-monolith</code>. The history:</p>
+    <pre><code>$ git log --follow --pretty="format:%h  %&lt;(7)%an  %s" -- src/dateFormat.ts
+0ea568b  Carol    fix: throw on null/undefined input
+939cac3  Carol    feat: i18n locale support
+ba6a721  Bob      chore(dateFormat): strict-mode types
+19bf9f5  Bob      fix(dateFormat): tighten DST/timezone edges
+4526e9e  Alice    feat(util): dateFormat supports relative time strings
+c483e41  Alice    feat(util): dateFormat handles unix timestamps
+4f0178b  Alice    feat(util): add dateFormat()</code></pre>
+  </section>
+
+  <section>
+    <h2>The proof — <code>git blame</code></h2>
+    <p>
+      <i>"But surely you lose blame after that many rewrites."</i> Well, no.
+      Three <code>git filter-repo</code> passes and a round-trip merge later,
+      every line still credits whoever first wrote it.
+    </p>
+    <pre><code>$ git blame --date=short -- src/dateFormat.ts
+939cac30 (Carol 2026-05-08 1) export function dateFormat(d: Date | number, opts?: &#123; relative?: boolean; locale?: string &#125;): string &#123;
+0ea568b3 (Carol 2026-05-08 2)   if (d == null) throw new TypeError('dateFormat: missing input');
+c483e414 (Alice 2026-05-08 3)   const date = typeof d === 'number' ? new Date(d * 1000) : d;
+939cac30 (Carol 2026-05-08 4)   if (opts?.relative) return relative(date, opts?.locale);
+939cac30 (Carol 2026-05-08 5)   return date.toLocaleString(opts?.locale);
+^4f0178b (Alice 2026-05-08 6) &#125;
+939cac30 (Carol 2026-05-08 7) function relative(_d: Date, _l?: string): string &#123; return '...'; &#125;</code></pre>
+    <p>
+      Line 3 is Alice's <code>c483e414</code>. Her original commit, in the
+      original repo. Intact.
+    </p>
+    <p>
+      <a href="/how#squash-merges"><strong>don't squash the monopoly PR</strong></a>
+    </p>
+  </section>
+
+  <section>
+    <h2>Run it yourself</h2>
+    <p>
+      Needs <code>git ≥ 2.22</code>, <code>monopoly</code> on PATH, and Python 3.
+    </p>
+    <pre><code># one-liner
+curl -fsSL https://raw.githubusercontent.com/itaymendel/monopoly-repo/main/examples/walkthrough.sh | bash
+
+# or download and run:
+curl -fsSL -O https://raw.githubusercontent.com/itaymendel/monopoly-repo/main/examples/walkthrough.sh
+chmod +x walkthrough.sh
+./walkthrough.sh /tmp/my-monopoly-demo</code></pre>
+    <p>The repos stay put. Poke at them:</p>
+    <pre><code>cd /tmp/my-monopoly-demo/app-monolith
+git log --follow --oneline -- src/dateFormat.ts
+git blame -- src/dateFormat.ts
+git log --full-history --pretty=fuller -- src/dateFormat.ts | head -60</code></pre>
+  </section>
+
+  <section>
+    <h2>One quirk — the round trip</h2>
+    <p>
+      Hop 3 re-imports the file rather than reverting Alice's original removal.
+      So the graph carries two parallel chains for the early commits — both
+      attributed to Alice, with her original timestamps (filter-repo rewrites
+      SHAs but keeps author and date).
+    </p>
+    <p>
+      <code>git log --follow</code> picks one chain and gives you the clean
+      seven-commit story above. <code>git log --full-history</code> shows both.
+      Pick whichever answers your question.
+    </p>
+  </section>
+</BaseLayout>

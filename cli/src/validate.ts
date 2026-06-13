@@ -3,7 +3,6 @@ import path from "path";
 import {
   getGitVersion,
   parseGitVersion,
-  isFilterRepoInstalled,
   isGitRepo,
   hasUncommittedChanges,
   getCurrentBranch,
@@ -12,6 +11,7 @@ import {
   findRepoRoot,
   toGitPath,
 } from "./git";
+import { isFilterRepoInstalled } from "./filter-repo";
 import type { MoveArgs } from "./args";
 
 export interface ValidatedContext {
@@ -95,6 +95,8 @@ export function validate(args: MoveArgs): ValidatedContext {
 function assertGitVersion(): void {
   const version = getGitVersion();
   const [major, minor] = parseGitVersion(version);
+  // git-filter-repo's documented minimum — older git versions lack the
+  // fast-export options it relies on.
   if (major < 2 || (major === 2 && minor < 22)) {
     throw new Error(`git >= 2.22.0 is required (found ${version}).`);
   }

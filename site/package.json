@@ -1,0 +1,22 @@
+{
+  "name": "monopoly-site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "og": "bun run scripts/generate-og.ts"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@resvg/resvg-js": "^2.6.2",
+    "astro": "^6.2.2",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.3"
+  }
+}

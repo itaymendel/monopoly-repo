@@ -1,0 +1,421 @@
+:root {
+  --bg: #fbf6ec;
+  --hero-bg: #faead0;
+  --fg: #1a1a1a;
+  --fg-muted: #666;
+  --accent: #1d6dab;
+  --prompt: #859900;
+  --highlight: #cb4b16;
+  --highlight-bg: #fdf2c4;
+  --code-bg: #f3e9d3;
+  --border: #ecdfc4;
+  --max-width: 720px;
+  --mono: ui-monospace, SFMono-Regular, Menlo, "Courier New", Consolas, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--mono);
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.7;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 3rem 1.25rem 4rem;
+  width: 100%;
+  flex: 1;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 2rem;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: 1.2rem;
+  margin: 2.5rem 0 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+h2::before {
+  content: "> ";
+  color: var(--prompt);
+  font-weight: 400;
+}
+
+h3 {
+  font-size: 1rem;
+  margin: 1.75rem 0 0.5rem;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+p {
+  margin: 0 0 1rem;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  background: var(--highlight-bg);
+  padding: 0.15em 0.35em;
+  border-radius: 3px;
+}
+
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+ul,
+ol {
+  padding-left: 1.25rem;
+}
+
+li {
+  margin-bottom: 0.35rem;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  font-weight: 600;
+  background: var(--code-bg);
+}
+
+.tagline {
+  color: var(--fg-muted);
+  font-size: 1.125rem;
+  margin: 0 0 2rem;
+}
+
+.site-header {
+  padding: 1rem 1.25rem;
+  background: var(--bg);
+}
+
+.site-header::after {
+  content: "* * *";
+  display: block;
+  text-align: center;
+  letter-spacing: 0.6em;
+  color: var(--highlight);
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.site-header nav {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.site-header .brand-block {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.site-header .brand {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.site-header .brand::before {
+  content: "~/";
+  color: var(--prompt);
+  font-weight: 400;
+}
+
+.site-header .brand:hover {
+  text-decoration: none;
+}
+
+.site-header .path-segment {
+  color: var(--fg-muted);
+  font-weight: 400;
+}
+
+.site-header nav a.muted {
+  color: var(--accent);
+  font-size: 0.9rem;
+  padding: 0 0.15em;
+}
+
+.site-header nav a.muted::before {
+  content: "[";
+}
+
+.site-header nav a.muted::after {
+  content: "]";
+}
+
+.site-header nav a.muted.active {
+  color: var(--prompt);
+}
+
+.site-header nav a.muted:hover {
+  text-decoration: none;
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.site-header nav .spacer {
+  margin-left: auto;
+}
+
+.site-footer {
+  padding: 2rem 1.25rem;
+  color: var(--fg-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.site-footer::before {
+  content: "* * *";
+  display: block;
+  letter-spacing: 0.6em;
+  color: var(--highlight);
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+.site-footer .links {
+  margin: 0;
+}
+
+.site-footer .links a {
+  color: var(--accent);
+  padding: 0 0.15em;
+  margin: 0 0.4em;
+}
+
+.site-footer .links a::before {
+  content: "[";
+}
+
+.site-footer .links a::after {
+  content: "]";
+}
+
+.site-footer .links a:hover {
+  text-decoration: none;
+  background: var(--fg);
+  color: var(--bg);
+}
+
+section {
+  margin: 2.5rem 0;
+}
+
+section + section::before,
+.closing::before {
+  content: "* * *";
+  display: block;
+  text-align: center;
+  letter-spacing: 0.6em;
+  color: var(--highlight);
+  font-size: 0.85rem;
+  margin: 0 0 2.5rem;
+}
+
+.hero {
+  margin: 1rem 0 3rem;
+  padding: 1.75rem 1.5rem;
+  background: var(--hero-bg);
+}
+
+.hero::before,
+.hero::after {
+  content: "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *";
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  letter-spacing: 0.15em;
+  color: var(--highlight);
+  font-size: 0.75rem;
+}
+
+.hero::before {
+  margin-bottom: 1.75rem;
+}
+
+.hero::after {
+  margin-top: 2rem;
+}
+
+.hero h1 {
+  font-size: 2.25rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+  color: var(--accent);
+}
+
+.hero h1::after {
+  content: "_";
+  display: inline-block;
+  margin-left: 0.05em;
+  color: var(--highlight);
+  animation: blink 1.1s steps(2, end) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero h1::after {
+    animation: none;
+  }
+}
+
+.lede {
+  font-size: 1.05rem;
+  color: var(--fg-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.closing {
+  margin: 4rem auto 1rem;
+  max-width: 36em;
+  font-style: italic;
+  color: var(--fg-muted);
+  text-align: center;
+}
+
+.intro {
+  border-left: 3px solid var(--highlight);
+  padding-left: 1.5rem;
+  margin-top: 2rem;
+}
+
+.intro::before {
+  content: none;
+}
+
+.intro p:first-of-type {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  margin-bottom: 1.1rem;
+}
+
+.intro p i {
+  color: var(--fg-muted);
+}
+
+.moves {
+  list-style: none;
+  padding-left: 0;
+  margin: 1rem 0;
+}
+
+.moves li {
+  position: relative;
+  padding-left: 1.25rem;
+  margin-bottom: 0.85rem;
+  line-height: 1.65;
+}
+
+.moves li::before {
+  content: "-";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--prompt);
+}
+
+.moves strong {
+  background: var(--highlight-bg);
+  padding: 0 0.3em;
+  border-radius: 2px;
+  color: var(--fg);
+  font-weight: 600;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+figure.diagram {
+  margin: 1.75rem 0;
+}
+
+figure.diagram .frame {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+figure.diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+figure.diagram figcaption {
+  margin-top: 0.6rem;
+  color: var(--fg-muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  text-align: center;
+}
