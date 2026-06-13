@@ -16,20 +16,22 @@ Born from a similar bash script I used when files needed to move across repos, t
 ## Usage
 
 ```
-monopoly move <source> --to <repo> [--as <path>] [--dry-run]
+npx monopoly-repo move <source> --to <repo> [--as <path>] [--dry-run]
 ```
 
 Examples
 
 ```bash
 cd my-monorepo
-npx monopoly move packages/auth --to ../auth-service --as auth # Move a package from a monorepo to a dedicated repo
+npx monopoly-repo move packages/auth --to ../auth-service --as auth # Move a package from a monorepo to a dedicated repo
 
 cd auth-service
-npx monopoly move auth --to ../my-monorepo --as packages/auth  # Move a dedicated repo back to the monorepo
+npx monopoly-repo move auth --to ../my-monorepo --as packages/auth  # Move a dedicated repo back to the monorepo
 
-npx monopoly move src/logger.ts --to ../shared                # Move a file from a repo to shared-utils repo
+npx monopoly-repo move src/logger.ts --to ../shared                 # Move a file from a repo to shared-utils repo
 ```
+
+> Installing globally (`npm i -g monopoly-repo`) gives you a shorter `monopoly` command.
 
 **After moving, you review and modify code to ensure things work.**
 
