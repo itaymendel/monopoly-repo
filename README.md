@@ -12,6 +12,7 @@ Born from a similar bash script I used when files needed to move across repos, t
 
 - **git** 2.22+
 - **Python 3**
+- **git-filter-repo** — if it isn't already installed (env var, `PATH`, or a known location), monopoly downloads a pinned, checksum-verified copy of `git-filter-repo` `v2.47.0` into `~/.cache/monopoly/` and runs it with Python 3. To avoid the download, install it yourself with `pip install git-filter-repo` or `brew install git-filter-repo`.
 
 ## Usage
 

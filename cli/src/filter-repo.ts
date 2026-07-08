@@ -1,11 +1,17 @@
 import { spawnSync } from "child_process";
+import crypto from "crypto";
 import fs from "fs";
 import os from "os";
 import path from "path";
 import { run, type GitResult } from "./git";
 
-const FILTER_REPO_URL =
-  "https://raw.githubusercontent.com/newren/git-filter-repo/main/git-filter-repo";
+// Pinned to a specific release so the download is reproducible and can't be
+// hijacked by a compromise of git-filter-repo's main branch. The checksum is
+// the sha256 of exactly this file — bump both together when upgrading.
+export const FILTER_REPO_VERSION = "v2.47.0";
+const FILTER_REPO_URL = `https://raw.githubusercontent.com/newren/git-filter-repo/${FILTER_REPO_VERSION}/git-filter-repo`;
+const FILTER_REPO_SHA256 =
+  "67447413e273fc76809289111748870b6f6072f08b17efe94863a92d810b7d94";
 
 interface FilterRepoCmd {
   command: string;
@@ -88,21 +94,23 @@ function provisionFilterRepo(): FilterRepoCmd | null {
   const python = findPython();
   if (!python) return null;
 
-  const cacheDir = path.join(os.homedir(), ".cache", "monopoly");
+  const cacheDir = filterRepoCacheDir();
   const scriptPath = path.join(cacheDir, "git-filter-repo");
 
+  // A cached copy is only trusted if its checksum matches the pinned release.
+  // This also invalidates stale copies fetched by older, unpinned versions.
   if (fs.existsSync(scriptPath)) {
-    const check = spawnSync(python, [scriptPath, "--version"], {
-      stdio: "ignore",
-      timeout: 5000,
-    });
-    if (check.status === 0) return { command: python, prefixArgs: [scriptPath] };
+    if (fileMatchesChecksum(scriptPath, FILTER_REPO_SHA256)) {
+      return { command: python, prefixArgs: [scriptPath] };
+    }
     try {
       fs.unlinkSync(scriptPath);
     } catch {}
   }
 
-  process.stderr.write("git-filter-repo not found, downloading...\n");
+  process.stderr.write(
+    `git-filter-repo not found, downloading ${FILTER_REPO_VERSION}...\n`
+  );
 
   try {
     fs.mkdirSync(cacheDir, { recursive: true });
@@ -111,6 +119,17 @@ function provisionFilterRepo(): FilterRepoCmd | null {
   }
 
   if (!downloadFile(FILTER_REPO_URL, scriptPath)) return null;
+
+  if (!fileMatchesChecksum(scriptPath, FILTER_REPO_SHA256)) {
+    try {
+      fs.unlinkSync(scriptPath);
+    } catch {}
+    process.stderr.write(
+      "Downloaded git-filter-repo failed checksum verification. " +
+        "Install it manually: pip install git-filter-repo (or brew install git-filter-repo).\n"
+    );
+    return null;
+  }
 
   const check = spawnSync(python, [scriptPath, "--version"], {
     stdio: "ignore",
@@ -126,6 +145,23 @@ function provisionFilterRepo(): FilterRepoCmd | null {
   process.stderr.write("git-filter-repo ready.\n");
   return { command: python, prefixArgs: [scriptPath] };
 }
+
+// Exported so tests can exercise the real cache location.
+export function filterRepoCacheDir(): string {
+  return path.join(os.homedir(), ".cache", "monopoly");
+}
+
+export function fileMatchesChecksum(filePath: string, expected: string): boolean {
+  try {
+    const hash = crypto.createHash("sha256");
+    hash.update(fs.readFileSync(filePath));
+    return hash.digest("hex") === expected;
+  } catch {
+    return false;
+  }
+}
+
+export const EXPECTED_FILTER_REPO_SHA256 = FILTER_REPO_SHA256;
 
 function downloadFile(url: string, dest: string): boolean {
   const curlResult = spawnSync("curl", ["-fsSL", "-o", dest, url], {
