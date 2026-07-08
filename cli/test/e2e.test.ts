@@ -138,6 +138,34 @@ describe("directory move", () => {
     expect(fs.existsSync(path.join(target, "libs/auth/index.ts"))).toBe(true);
     expect(fs.existsSync(path.join(target, "libs/auth/logout.ts"))).toBe(true);
   });
+
+  test("extracted entry named like the --as target lands at the right path", () => {
+    const mono = path.join(tmpRoot, "mono");
+    const target = path.join(tmpRoot, "target");
+
+    initRepo(mono);
+    // The moved package contains its own `auth/` subdirectory — the same name
+    // as the --as target. This used to be silently dropped at the target root.
+    writeAndCommit(mono, "packages/auth/index.ts", "export const x = 1;\n", "feat: init");
+    writeAndCommit(mono, "packages/auth/auth/nested.ts", "export const nested = 1;\n", "feat: nested auth");
+
+    initRepo(target);
+    writeAndCommit(target, ".gitkeep", "", "chore: init");
+
+    const result = runMove(path.join(mono, "packages/auth"), target, "auth");
+
+    expect(result).not.toBe("dry-run");
+    if (result === "dry-run") return;
+
+    // The colliding nested entry ends up under the target, not at the root.
+    expect(fs.existsSync(path.join(target, "auth/auth/nested.ts"))).toBe(true);
+    expect(fs.existsSync(path.join(target, "auth/index.ts"))).toBe(true);
+
+    // Nothing was left stranded at the target repo root.
+    expect(fs.existsSync(path.join(target, "auth/nested.ts"))).toBe(false);
+    expect(fs.existsSync(path.join(target, "nested.ts"))).toBe(false);
+    expect(fs.existsSync(path.join(target, "index.ts"))).toBe(false);
+  });
 });
 
 describe("file move", () => {
