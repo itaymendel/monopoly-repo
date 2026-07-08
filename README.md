@@ -51,9 +51,9 @@ cd target-repo
 git merge --abort
 ```
 
-`git merge --abort` restores the pre-merge state, so the files the merge staged are removed for you — no manual deletion needed.
+`git merge --abort` restores the pre-merge state — no manual deletion needed.
 
-If you already committed the moved files, and the merge commit is still local (not pushed), roll it back:
+If you already committed the moved files and the merge commit hasn't been pushed, roll it back:
 
 ```
 git reset --hard HEAD~1   # drops the merge commit and its files
@@ -64,7 +64,7 @@ git reset --hard HEAD~1   # drops the merge commit and its files
 If the merge was already pushed, don't rewrite history — revert it instead:
 
 ```
-git revert -m 1 <merge-commit>   # undo the merge, keep first-parent history
+git revert -m 1 <merge-commit>
 ```
 
 ## How it works
