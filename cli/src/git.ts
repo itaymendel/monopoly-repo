@@ -9,16 +9,18 @@ export interface GitResult {
 }
 
 // Uses spawnSync (no shell) — safe against argument injection.
-export function run(cmd: string, args: string[], cwd?: string): GitResult {
+export function run(
+  cmd: string,
+  args: string[],
+  cwd?: string,
+  env?: NodeJS.ProcessEnv
+): GitResult {
   const result = spawnSync(cmd, args, {
     cwd,
     encoding: "utf-8",
     // Default 1 MB is too small for git output on large monorepos.
     maxBuffer: 50 * 1024 * 1024,
-    // Force a stable locale so git's output (notices, "CONFLICT" markers, etc.)
-    // is deterministic regardless of the user's LANG/LC_ALL. Without this,
-    // localized output would break any code that inspects what git printed.
-    env: { ...process.env, LC_ALL: "C" },
+    env,
   });
   return {
     stdout: (result.stdout ?? "").trimEnd(),
@@ -34,7 +36,11 @@ export function toGitPath(p: string): string {
 }
 
 export function git(args: string[], cwd?: string): GitResult {
-  return run("git", args, cwd);
+  // Force a stable locale so git's output (notices, "CONFLICT" markers, etc.)
+  // is deterministic regardless of the user's LANG/LC_ALL. Scoped to git only:
+  // forcing LC_ALL=C on other subprocesses (e.g. git-filter-repo's Python)
+  // could break non-ASCII filename handling.
+  return run("git", args, cwd, { ...process.env, LC_ALL: "C" });
 }
 
 export function requireSuccess(result: GitResult, message: string): void {
@@ -61,6 +67,16 @@ export function isGitRepo(dir: string): boolean {
 export function hasUncommittedChanges(dir: string): boolean {
   const status = git(["status", "--porcelain"], dir);
   return status.success && status.stdout.length > 0;
+}
+
+/**
+ * True when the index has unmerged (conflicted) entries. Structural check —
+ * unlike matching "CONFLICT" in git's output, it can't be fooled by localized
+ * messages or by conflict text landing on stdout vs stderr.
+ */
+export function hasUnmergedEntries(dir: string): boolean {
+  const result = git(["ls-files", "-u"], dir);
+  return result.success && result.stdout.length > 0;
 }
 
 export function getCurrentBranch(dir: string): string {

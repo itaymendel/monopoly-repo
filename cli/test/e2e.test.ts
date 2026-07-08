@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import { git } from "../src/git";
+import { git, getHeadHash } from "../src/git";
 import { parseArgs } from "../src/args";
 import { validate } from "../src/validate";
 import { executeMove } from "../src/move";
@@ -455,7 +455,7 @@ describe("merge conflict", () => {
     initRepo(target);
     writeAndCommit(target, "auth", "i am a plain file, not a directory\n", "chore: add auth file");
 
-    const headBefore = git(["rev-parse", "HEAD"], target).stdout;
+    const headBefore = getHeadHash(target);
 
     expect(() =>
       runMove(path.join(source, "packages/login.ts"), target, "auth/index.ts")
@@ -470,8 +470,7 @@ describe("merge conflict", () => {
     expect(status.stdout).toBe("");
 
     // HEAD is unchanged.
-    const headAfter = git(["rev-parse", "HEAD"], target).stdout;
-    expect(headAfter).toBe(headBefore);
+    expect(getHeadHash(target)).toBe(headBefore);
 
     // The original `auth` file is intact.
     expect(fs.readFileSync(path.join(target, "auth"), "utf-8")).toContain("plain file");

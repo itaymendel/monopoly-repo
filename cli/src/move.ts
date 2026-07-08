@@ -5,6 +5,7 @@ import {
   git,
   getCurrentBranch,
   hasAnyCommits,
+  hasUnmergedEntries,
   countCommits,
   requireSuccess,
   toGitPath,
@@ -183,26 +184,23 @@ function mergeIntoTarget(
     // git's output to tell those apart: conflict notices are localized on
     // non-English systems and much of the text goes to stdout, not stderr —
     // both would make a text match miss real conflicts and print "success"
-    // over a half-merged tree. Instead we detect structurally: `ls-files -u`
-    // lists unmerged (conflicted) index entries, which is exit-code/locale
-    // independent.
+    // over a half-merged tree. Instead we check the index structurally, then
+    // always abort to leave the target pristine before throwing.
     if (!mergeResult.success) {
-      const unmerged = git(["ls-files", "-u"], ctx.targetRepoRoot);
+      // Must probe before aborting — the abort clears the unmerged entries.
+      const conflicted = hasUnmergedEntries(ctx.targetRepoRoot);
       const mergeOutput = [mergeResult.stdout, mergeResult.stderr]
         .filter(Boolean)
         .join("\n");
 
-      if (unmerged.stdout.length > 0) {
-        // Genuine merge conflict: unmerged entries in the index.
-        git(["merge", "--abort"], ctx.targetRepoRoot);
+      git(["merge", "--abort"], ctx.targetRepoRoot);
+
+      if (conflicted) {
         throw new Error(
           `Merge conflict: ${mergeOutput}. Resolve manually or choose a different --as path.`
         );
       }
-
-      // Merge failed for a non-conflict reason (bad refs, etc.). Clean up any
-      // partial merge state before surfacing git's output.
-      git(["merge", "--abort"], ctx.targetRepoRoot);
+      // Merge failed for a non-conflict reason (bad refs, etc.).
       throw new Error(`Merge failed: ${mergeOutput}`);
     }
   } finally {
