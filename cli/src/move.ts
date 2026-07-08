@@ -85,19 +85,35 @@ function cloneAndFilter(tmpDir: string, ctx: ValidatedContext): string {
  * when merged into the target repo.
  */
 function restructureDirectory(extractDir: string, targetPath: string): void {
-  fs.mkdirSync(path.join(extractDir, targetPath), { recursive: true });
+  // Read entries BEFORE creating the target dir. An extracted entry can share a
+  // name with the target path's top level (e.g. moving a package that contains
+  // its own `auth/` while --as is `auth`); excluding that name to avoid moving
+  // the target dir into itself would silently drop the entry at the wrong path.
+  // Instead we stage everything through a uniquely-named temp dir that cannot
+  // collide with any extracted entry, then rename it onto the target path.
+  const entries = fs.readdirSync(extractDir).filter((e) => e !== ".git");
 
-  const topLevel = targetPath.split("/")[0];
-  const entries = fs.readdirSync(extractDir).filter(
-    (e) => e !== ".git" && e !== topLevel
+  // Nothing was extracted: committing an empty index would fail, and there is
+  // nothing to restructure or merge.
+  if (entries.length === 0) return;
+
+  const tmpDir = uniqueTempName(extractDir);
+  fs.mkdirSync(path.join(extractDir, tmpDir));
+  requireSuccess(
+    git(["mv", ...entries, tmpDir], extractDir),
+    "Failed to restructure files"
   );
 
-  if (entries.length > 0) {
-    requireSuccess(
-      git(["mv", ...entries, targetPath], extractDir),
-      "Failed to restructure files"
-    );
+  // Nested target paths (e.g. "libs/auth") need their parent to exist so the
+  // temp dir is renamed ONTO the leaf rather than into an existing directory.
+  const parent = path.dirname(targetPath);
+  if (parent !== ".") {
+    fs.mkdirSync(path.join(extractDir, parent), { recursive: true });
   }
+  requireSuccess(
+    git(["mv", tmpDir, targetPath], extractDir),
+    "Failed to restructure files"
+  );
 
   requireSuccess(
     git(
@@ -106,6 +122,17 @@ function restructureDirectory(extractDir: string, targetPath: string): void {
     ),
     "Failed to commit restructured files"
   );
+}
+
+/** A temp dir name at the extract root guaranteed not to collide with entries. */
+function uniqueTempName(extractDir: string): string {
+  const base = ".monopoly-restructure-tmp";
+  let name = base;
+  let n = 0;
+  while (fs.existsSync(path.join(extractDir, name))) {
+    name = `${base}-${++n}`;
+  }
+  return name;
 }
 
 /**
