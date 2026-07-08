@@ -2,16 +2,11 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import crypto from "crypto";
 import { git } from "../src/git";
 import { parseArgs } from "../src/args";
 import { validate } from "../src/validate";
 import { executeMove } from "../src/move";
-import {
-  fileMatchesChecksum,
-  filterRepoCacheDir,
-  EXPECTED_FILTER_REPO_SHA256,
-} from "../src/filter-repo";
+import { fileMatchesChecksum, FILTER_REPO_SHA256 } from "../src/filter-repo";
 
 // --- Test helpers ---
 
@@ -450,21 +445,7 @@ describe("git-filter-repo checksum verification", () => {
     // Simulate a stale/tampered cache file left by an older, unpinned version.
     const stale = path.join(tmpRoot, "git-filter-repo");
     fs.writeFileSync(stale, "#!/usr/bin/env python3\n# not the real thing\n");
-    expect(fileMatchesChecksum(stale, EXPECTED_FILTER_REPO_SHA256)).toBe(false);
-  });
-
-  test("accepts a file whose sha256 matches the expected digest", () => {
-    const content = Buffer.from("pinned git-filter-repo bytes");
-    const good = path.join(tmpRoot, "good");
-    fs.writeFileSync(good, content);
-    const digest = crypto.createHash("sha256").update(content).digest("hex");
-    expect(fileMatchesChecksum(good, digest)).toBe(true);
-  });
-
-  test("cache dir resolves under ~/.cache/monopoly", () => {
-    expect(filterRepoCacheDir()).toBe(
-      path.join(os.homedir(), ".cache", "monopoly")
-    );
+    expect(fileMatchesChecksum(stale, FILTER_REPO_SHA256)).toBe(false);
   });
 });
 

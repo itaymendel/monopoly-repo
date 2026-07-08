@@ -8,9 +8,9 @@ import { run, type GitResult } from "./git";
 // Pinned to a specific release so the download is reproducible and can't be
 // hijacked by a compromise of git-filter-repo's main branch. The checksum is
 // the sha256 of exactly this file — bump both together when upgrading.
-export const FILTER_REPO_VERSION = "v2.47.0";
+const FILTER_REPO_VERSION = "v2.47.0";
 const FILTER_REPO_URL = `https://raw.githubusercontent.com/newren/git-filter-repo/${FILTER_REPO_VERSION}/git-filter-repo`;
-const FILTER_REPO_SHA256 =
+export const FILTER_REPO_SHA256 =
   "67447413e273fc76809289111748870b6f6072f08b17efe94863a92d810b7d94";
 
 interface FilterRepoCmd {
@@ -94,7 +94,7 @@ function provisionFilterRepo(): FilterRepoCmd | null {
   const python = findPython();
   if (!python) return null;
 
-  const cacheDir = filterRepoCacheDir();
+  const cacheDir = path.join(os.homedir(), ".cache", "monopoly");
   const scriptPath = path.join(cacheDir, "git-filter-repo");
 
   // A cached copy is only trusted if its checksum matches the pinned release.
@@ -146,11 +146,6 @@ function provisionFilterRepo(): FilterRepoCmd | null {
   return { command: python, prefixArgs: [scriptPath] };
 }
 
-// Exported so tests can exercise the real cache location.
-export function filterRepoCacheDir(): string {
-  return path.join(os.homedir(), ".cache", "monopoly");
-}
-
 export function fileMatchesChecksum(filePath: string, expected: string): boolean {
   try {
     const hash = crypto.createHash("sha256");
@@ -160,8 +155,6 @@ export function fileMatchesChecksum(filePath: string, expected: string): boolean
     return false;
   }
 }
-
-export const EXPECTED_FILTER_REPO_SHA256 = FILTER_REPO_SHA256;
 
 function downloadFile(url: string, dest: string): boolean {
   const curlResult = spawnSync("curl", ["-fsSL", "-o", dest, url], {
