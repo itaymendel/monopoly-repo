@@ -5,6 +5,7 @@ import {
   git,
   getCurrentBranch,
   hasAnyCommits,
+  hasUnmergedEntries,
   countCommits,
   requireSuccess,
   toGitPath,
@@ -197,14 +198,29 @@ function mergeIntoTarget(
       ctx.targetRepoRoot
     );
 
-    // git lacks a clean exit-code distinction between "merge had conflicts"
-    // and "merge failed for other reasons", so we string-match stderr. This
-    // is the standard workaround.
-    if (mergeResult.stderr.includes("CONFLICT")) {
+    // With --no-commit, a fully successful merge exits 0; anything else (a
+    // conflict, or a hard failure) exits non-zero. We must NOT string-match
+    // git's output to tell those apart: conflict notices are localized on
+    // non-English systems and much of the text goes to stdout, not stderr —
+    // both would make a text match miss real conflicts and print "success"
+    // over a half-merged tree. Instead we check the index structurally, then
+    // always abort to leave the target pristine before throwing.
+    if (!mergeResult.success) {
+      // Must probe before aborting — the abort clears the unmerged entries.
+      const conflicted = hasUnmergedEntries(ctx.targetRepoRoot);
+      const mergeOutput = [mergeResult.stdout, mergeResult.stderr]
+        .filter(Boolean)
+        .join("\n");
+
       git(["merge", "--abort"], ctx.targetRepoRoot);
-      throw new Error(
-        `Merge conflict: ${mergeResult.stderr}. Resolve manually or choose a different --as path.`
-      );
+
+      if (conflicted) {
+        throw new Error(
+          `Merge conflict: ${mergeOutput}. Resolve manually or choose a different --as path.`
+        );
+      }
+      // Merge failed for a non-conflict reason (bad refs, etc.).
+      throw new Error(`Merge failed: ${mergeOutput}`);
     }
   } finally {
     git(["remote", "remove", remoteName], ctx.targetRepoRoot);

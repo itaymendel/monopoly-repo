@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import { git } from "../src/git";
+import { git, getHeadHash } from "../src/git";
 import { parseArgs } from "../src/args";
 import { validate } from "../src/validate";
 import { executeMove } from "../src/move";
@@ -464,6 +464,44 @@ describe("round-trip (A → B → A)", () => {
     const fullLog = git(["log", "--oneline", "--all"], repoA);
     expect(fullLog.stdout).toContain("feat(auth): add MFA");
     expect(fullLog.stdout).toContain("monopoly: return auth from repo-b");
+  });
+});
+
+describe("merge conflict", () => {
+  test("aborts cleanly and throws when the merge conflicts", () => {
+    const source = path.join(tmpRoot, "source");
+    const target = path.join(tmpRoot, "target");
+
+    // Source has a single file with history.
+    initRepo(source);
+    writeAndCommit(source, "packages/login.ts", "export const login = 1;\n", "feat: add login");
+
+    // Target commits `auth` as a regular FILE. validate() only rejects when the
+    // exact --as path exists on disk; `auth/index.ts` does not (auth is a file),
+    // so validation passes — but merging a tree that puts a file at `auth/index.ts`
+    // collides with the `auth` file, producing a real file/directory conflict.
+    initRepo(target);
+    writeAndCommit(target, "auth", "i am a plain file, not a directory\n", "chore: add auth file");
+
+    const headBefore = getHeadHash(target);
+
+    expect(() =>
+      runMove(path.join(source, "packages/login.ts"), target, "auth/index.ts")
+    ).toThrow("Merge conflict");
+
+    // Target must be left pristine: no in-progress merge, no staged changes.
+    const gitDirResult = git(["rev-parse", "--git-dir"], target);
+    const gitDir = path.resolve(target, gitDirResult.stdout);
+    expect(fs.existsSync(path.join(gitDir, "MERGE_HEAD"))).toBe(false);
+
+    const status = git(["status", "--porcelain"], target);
+    expect(status.stdout).toBe("");
+
+    // HEAD is unchanged.
+    expect(getHeadHash(target)).toBe(headBefore);
+
+    // The original `auth` file is intact.
+    expect(fs.readFileSync(path.join(target, "auth"), "utf-8")).toContain("plain file");
   });
 });
 
