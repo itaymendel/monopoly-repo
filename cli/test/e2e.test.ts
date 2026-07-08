@@ -6,6 +6,7 @@ import { git, getHeadHash } from "../src/git";
 import { parseArgs } from "../src/args";
 import { validate } from "../src/validate";
 import { executeMove } from "../src/move";
+import { fileMatchesChecksum, FILTER_REPO_SHA256 } from "../src/filter-repo";
 
 // --- Test helpers ---
 
@@ -464,6 +465,15 @@ describe("round-trip (A → B → A)", () => {
     const fullLog = git(["log", "--oneline", "--all"], repoA);
     expect(fullLog.stdout).toContain("feat(auth): add MFA");
     expect(fullLog.stdout).toContain("monopoly: return auth from repo-b");
+  });
+});
+
+describe("git-filter-repo checksum verification", () => {
+  test("rejects a cached copy whose checksum doesn't match the pinned release", () => {
+    // Simulate a stale/tampered cache file left by an older, unpinned version.
+    const stale = path.join(tmpRoot, "git-filter-repo");
+    fs.writeFileSync(stale, "#!/usr/bin/env python3\n# not the real thing\n");
+    expect(fileMatchesChecksum(stale, FILTER_REPO_SHA256)).toBe(false);
   });
 });
 
