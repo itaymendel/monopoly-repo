@@ -178,14 +178,32 @@ function mergeIntoTarget(
       ctx.targetRepoRoot
     );
 
-    // git lacks a clean exit-code distinction between "merge had conflicts"
-    // and "merge failed for other reasons", so we string-match stderr. This
-    // is the standard workaround.
-    if (mergeResult.stderr.includes("CONFLICT")) {
+    // With --no-commit, a fully successful merge exits 0; anything else (a
+    // conflict, or a hard failure) exits non-zero. We must NOT string-match
+    // git's output to tell those apart: conflict notices are localized on
+    // non-English systems and much of the text goes to stdout, not stderr —
+    // both would make a text match miss real conflicts and print "success"
+    // over a half-merged tree. Instead we detect structurally: `ls-files -u`
+    // lists unmerged (conflicted) index entries, which is exit-code/locale
+    // independent.
+    if (!mergeResult.success) {
+      const unmerged = git(["ls-files", "-u"], ctx.targetRepoRoot);
+      const mergeOutput = [mergeResult.stdout, mergeResult.stderr]
+        .filter(Boolean)
+        .join("\n");
+
+      if (unmerged.stdout.length > 0) {
+        // Genuine merge conflict: unmerged entries in the index.
+        git(["merge", "--abort"], ctx.targetRepoRoot);
+        throw new Error(
+          `Merge conflict: ${mergeOutput}. Resolve manually or choose a different --as path.`
+        );
+      }
+
+      // Merge failed for a non-conflict reason (bad refs, etc.). Clean up any
+      // partial merge state before surfacing git's output.
       git(["merge", "--abort"], ctx.targetRepoRoot);
-      throw new Error(
-        `Merge conflict: ${mergeResult.stderr}. Resolve manually or choose a different --as path.`
-      );
+      throw new Error(`Merge failed: ${mergeOutput}`);
     }
   } finally {
     git(["remote", "remove", remoteName], ctx.targetRepoRoot);

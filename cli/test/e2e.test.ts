@@ -439,6 +439,45 @@ describe("round-trip (A → B → A)", () => {
   });
 });
 
+describe("merge conflict", () => {
+  test("aborts cleanly and throws when the merge conflicts", () => {
+    const source = path.join(tmpRoot, "source");
+    const target = path.join(tmpRoot, "target");
+
+    // Source has a single file with history.
+    initRepo(source);
+    writeAndCommit(source, "packages/login.ts", "export const login = 1;\n", "feat: add login");
+
+    // Target commits `auth` as a regular FILE. validate() only rejects when the
+    // exact --as path exists on disk; `auth/index.ts` does not (auth is a file),
+    // so validation passes — but merging a tree that puts a file at `auth/index.ts`
+    // collides with the `auth` file, producing a real file/directory conflict.
+    initRepo(target);
+    writeAndCommit(target, "auth", "i am a plain file, not a directory\n", "chore: add auth file");
+
+    const headBefore = git(["rev-parse", "HEAD"], target).stdout;
+
+    expect(() =>
+      runMove(path.join(source, "packages/login.ts"), target, "auth/index.ts")
+    ).toThrow("Merge conflict");
+
+    // Target must be left pristine: no in-progress merge, no staged changes.
+    const gitDirResult = git(["rev-parse", "--git-dir"], target);
+    const gitDir = path.resolve(target, gitDirResult.stdout);
+    expect(fs.existsSync(path.join(gitDir, "MERGE_HEAD"))).toBe(false);
+
+    const status = git(["status", "--porcelain"], target);
+    expect(status.stdout).toBe("");
+
+    // HEAD is unchanged.
+    const headAfter = git(["rev-parse", "HEAD"], target).stdout;
+    expect(headAfter).toBe(headBefore);
+
+    // The original `auth` file is intact.
+    expect(fs.readFileSync(path.join(target, "auth"), "utf-8")).toContain("plain file");
+  });
+});
+
 describe("multiple moves into same repo", () => {
   test("can move two different paths into the same target", () => {
     const mono = path.join(tmpRoot, "mono");

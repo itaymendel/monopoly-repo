@@ -15,6 +15,10 @@ export function run(cmd: string, args: string[], cwd?: string): GitResult {
     encoding: "utf-8",
     // Default 1 MB is too small for git output on large monorepos.
     maxBuffer: 50 * 1024 * 1024,
+    // Force a stable locale so git's output (notices, "CONFLICT" markers, etc.)
+    // is deterministic regardless of the user's LANG/LC_ALL. Without this,
+    // localized output would break any code that inspects what git printed.
+    env: { ...process.env, LC_ALL: "C" },
   });
   return {
     stdout: (result.stdout ?? "").trimEnd(),
