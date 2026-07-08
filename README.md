@@ -1,12 +1,12 @@
 # monopoly
 
-Move code between git repositories including history, keeping `git log`, `git blame`, and `git bisect` work.
+Move code between git repositories including history, keeping `git log`, `git blame`, and `git bisect` working.
 
 Supports moving from A->B->C, and even back to A.
 
 ## Motivation
 
-Born from a similar bash script I used when files needed to move across repos, to calm some of my peers who cared deeply about preserving git history. Recently I decided to bundle this up in this simple CLI alongside the [monopoly-repo.dev](monopoly-repo.dev) pragmatic approach for repo setups.
+Born from a similar bash script I used when files needed to move across repos, to calm some of my peers who cared deeply about preserving git history. Recently I decided to bundle this up in this simple CLI alongside the [monopoly-repo.dev](https://monopoly-repo.dev) pragmatic approach for repo setups.
 
 ## Prerequisites
 
@@ -50,15 +50,22 @@ If you haven't committed:
 ```
 cd target-repo
 git merge --abort
-# and manually delete files
 ```
 
-If you alreday comitted moved file, do a normal `reset` flow:
+`git merge --abort` restores the pre-merge state — no manual deletion needed.
+
+If you already committed the moved files and the merge commit hasn't been pushed, roll it back:
 
 ```
-git reset --soft HEAD~1   # undo the commit, keep files staged
-git reset HEAD            # unstage everything                                                                                                                                                                                                                                   
-git checkout .            # discard the files  
+git reset --hard HEAD~1   # drops the merge commit and its files
+```
+
+> `git reset --hard` discards *all* uncommitted changes in the working tree. Only run it if you have no other unrelated work in progress.
+
+If the merge was already pushed, don't rewrite history — revert it instead:
+
+```
+git revert -m 1 <merge-commit>
 ```
 
 ## How it works

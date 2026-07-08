@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import { git } from "../src/git";
+import { git, getHeadHash } from "../src/git";
 import { parseArgs } from "../src/args";
 import { validate } from "../src/validate";
 import { executeMove } from "../src/move";
@@ -138,6 +138,34 @@ describe("directory move", () => {
 
     expect(fs.existsSync(path.join(target, "libs/auth/index.ts"))).toBe(true);
     expect(fs.existsSync(path.join(target, "libs/auth/logout.ts"))).toBe(true);
+  });
+
+  test("extracted entry named like the --as target lands at the right path", () => {
+    const mono = path.join(tmpRoot, "mono");
+    const target = path.join(tmpRoot, "target");
+
+    initRepo(mono);
+    // The moved package contains its own `auth/` subdirectory — the same name
+    // as the --as target. This used to be silently dropped at the target root.
+    writeAndCommit(mono, "packages/auth/index.ts", "export const x = 1;\n", "feat: init");
+    writeAndCommit(mono, "packages/auth/auth/nested.ts", "export const nested = 1;\n", "feat: nested auth");
+
+    initRepo(target);
+    writeAndCommit(target, ".gitkeep", "", "chore: init");
+
+    const result = runMove(path.join(mono, "packages/auth"), target, "auth");
+
+    expect(result).not.toBe("dry-run");
+    if (result === "dry-run") return;
+
+    // The colliding nested entry ends up under the target, not at the root.
+    expect(fs.existsSync(path.join(target, "auth/auth/nested.ts"))).toBe(true);
+    expect(fs.existsSync(path.join(target, "auth/index.ts"))).toBe(true);
+
+    // Nothing was left stranded at the target repo root.
+    expect(fs.existsSync(path.join(target, "auth/nested.ts"))).toBe(false);
+    expect(fs.existsSync(path.join(target, "nested.ts"))).toBe(false);
+    expect(fs.existsSync(path.join(target, "index.ts"))).toBe(false);
   });
 });
 
@@ -446,6 +474,44 @@ describe("git-filter-repo checksum verification", () => {
     const stale = path.join(tmpRoot, "git-filter-repo");
     fs.writeFileSync(stale, "#!/usr/bin/env python3\n# not the real thing\n");
     expect(fileMatchesChecksum(stale, FILTER_REPO_SHA256)).toBe(false);
+  });
+});
+
+describe("merge conflict", () => {
+  test("aborts cleanly and throws when the merge conflicts", () => {
+    const source = path.join(tmpRoot, "source");
+    const target = path.join(tmpRoot, "target");
+
+    // Source has a single file with history.
+    initRepo(source);
+    writeAndCommit(source, "packages/login.ts", "export const login = 1;\n", "feat: add login");
+
+    // Target commits `auth` as a regular FILE. validate() only rejects when the
+    // exact --as path exists on disk; `auth/index.ts` does not (auth is a file),
+    // so validation passes — but merging a tree that puts a file at `auth/index.ts`
+    // collides with the `auth` file, producing a real file/directory conflict.
+    initRepo(target);
+    writeAndCommit(target, "auth", "i am a plain file, not a directory\n", "chore: add auth file");
+
+    const headBefore = getHeadHash(target);
+
+    expect(() =>
+      runMove(path.join(source, "packages/login.ts"), target, "auth/index.ts")
+    ).toThrow("Merge conflict");
+
+    // Target must be left pristine: no in-progress merge, no staged changes.
+    const gitDirResult = git(["rev-parse", "--git-dir"], target);
+    const gitDir = path.resolve(target, gitDirResult.stdout);
+    expect(fs.existsSync(path.join(gitDir, "MERGE_HEAD"))).toBe(false);
+
+    const status = git(["status", "--porcelain"], target);
+    expect(status.stdout).toBe("");
+
+    // HEAD is unchanged.
+    expect(getHeadHash(target)).toBe(headBefore);
+
+    // The original `auth` file is intact.
+    expect(fs.readFileSync(path.join(target, "auth"), "utf-8")).toContain("plain file");
   });
 });
 
