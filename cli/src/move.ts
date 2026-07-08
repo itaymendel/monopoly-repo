@@ -97,8 +97,11 @@ function restructureDirectory(extractDir: string, targetPath: string): void {
   // nothing to restructure or merge.
   if (entries.length === 0) return;
 
-  const tmpDir = uniqueTempName(extractDir);
-  fs.mkdirSync(path.join(extractDir, tmpDir));
+  // mkdtemp's random suffix guarantees the staging dir cannot collide with
+  // any extracted entry.
+  const tmpDir = path.basename(
+    fs.mkdtempSync(path.join(extractDir, ".monopoly-restructure-"))
+  );
   requireSuccess(
     git(["mv", ...entries, tmpDir], extractDir),
     "Failed to restructure files"
@@ -122,17 +125,6 @@ function restructureDirectory(extractDir: string, targetPath: string): void {
     ),
     "Failed to commit restructured files"
   );
-}
-
-/** A temp dir name at the extract root guaranteed not to collide with entries. */
-function uniqueTempName(extractDir: string): string {
-  const base = ".monopoly-restructure-tmp";
-  let name = base;
-  let n = 0;
-  while (fs.existsSync(path.join(extractDir, name))) {
-    name = `${base}-${++n}`;
-  }
-  return name;
 }
 
 /**
