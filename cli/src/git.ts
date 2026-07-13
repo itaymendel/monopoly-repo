@@ -108,6 +108,17 @@ export function hasAnyCommits(dir: string): boolean {
   return countCommits(dir) > 0;
 }
 
+/**
+ * Root commits (those with no parent) reachable from HEAD. Usually one, but a
+ * history that itself merged unrelated roots can have several. Used to build the
+ * optional `git replace --graft` hint that linearizes the imported history.
+ */
+export function getRootCommits(dir: string): string[] {
+  const result = git(["rev-list", "--max-parents=0", "HEAD"], dir);
+  if (!result.success) return [];
+  return result.stdout.split("\n").filter((l) => l.length > 0);
+}
+
 export function findRepoRoot(startPath: string): string | null {
   const result = git(["rev-parse", "--show-toplevel"], startPath);
   return result.success ? result.stdout : null;

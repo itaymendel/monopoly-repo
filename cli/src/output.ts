@@ -61,9 +61,35 @@ export function printSuccess(result: MoveResult): void {
   To remove the source from this repo:
     git rm -r ${result.sourcePath}
     git commit -m "chore: remove ${result.sourcePath} (graduated to ${result.targetRepo})"
-
+${graftSection(result)}
   Don't forget to replace direct usage of ${result.sourcePath} with
   an external dependency (package, subtree, runtime import, etc).`);
+}
+
+/**
+ * Guidance for making history traversal seamless. Once the seam is committed,
+ * `git log --follow` and `git blame` already trace across the move — the graft
+ * is an optional extra that also linearizes plain `git log`/`git bisect` and
+ * keeps history continuous when chaining moves across several repos.
+ */
+function graftSection(result: MoveResult): string {
+  const grafts = result.graftRoots
+    .map((root) => `    git replace --graft ${root} ${result.graftOnto}`)
+    .join("\n");
+
+  const optional = grafts
+    ? `
+
+  Optional — make plain git log/bisect show one continuous line
+  (recommended when chaining moves across several repos):
+${grafts}
+    git push origin 'refs/replace/*'                                  # share it
+    git config --add remote.origin.fetch '+refs/replace/*:refs/replace/*'`
+    : "";
+
+  return `
+  After you commit, git log --follow and git blame trace across the move.${optional}
+`;
 }
 
 export function printDryRun(args: MoveArgs, ctx: ValidatedContext): void {

@@ -169,6 +169,39 @@ describe("directory move", () => {
   });
 });
 
+describe("graft hint", () => {
+  test("the reported graft roots + tip linearize the two histories", () => {
+    const mono = path.join(tmpRoot, "mono");
+    const target = path.join(tmpRoot, "target");
+
+    buildMonorepo(mono);
+    initRepo(target);
+    writeAndCommit(target, ".gitkeep", "", "chore: init");
+
+    const result = runMove(path.join(mono, "packages/auth"), target, "auth");
+    expect(result).not.toBe("dry-run");
+    if (result === "dry-run") return;
+
+    // graftOnto is the target tip the --no-commit merge left HEAD at.
+    expect(result.graftOnto).toBe(git(["rev-parse", "HEAD"], target).stdout);
+    expect(result.graftRoots.length).toBeGreaterThan(0);
+
+    // Commit the seam, then apply the exact graft monopoly recommends.
+    git(["commit", "--no-edit"], target);
+    expect(git(["rev-list", "--max-parents=0", "HEAD"], target).stdout.split("\n"))
+      .toHaveLength(2); // two unrelated roots before grafting
+
+    for (const root of result.graftRoots) {
+      const res = git(["replace", "--graft", root, result.graftOnto], target);
+      expect(res.success).toBe(true);
+    }
+
+    // After grafting, the imported root descends from the target tip — one root.
+    expect(git(["rev-list", "--max-parents=0", "HEAD"], target).stdout.split("\n"))
+      .toHaveLength(1);
+  });
+});
+
 describe("file move", () => {
   test("moves a single file with history", () => {
     const mono = path.join(tmpRoot, "mono");
