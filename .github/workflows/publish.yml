@@ -33,14 +33,15 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22.14.0" # Trusted Publishing requires Node >= 22.14.0
+          # Current LTS. Kept ahead of npm@latest's Node floor so the upgrade
+          # step below can track the newest npm without hitting EBADENGINE.
+          # (Trusted Publishing itself only needs Node >= 22.14.0.)
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
       # GitHub runners ship an older npm; Trusted Publishing needs >= 11.5.1.
-      # Pin to the 11.x line: npm@latest (12.x) requires Node >= 22.22.2, which
-      # is newer than the Node pinned above, so `npm@latest` fails EBADENGINE.
       - name: Upgrade npm
-        run: npm install -g npm@11
+        run: npm install -g npm@latest
 
       # Not --frozen-lockfile: an auto-bumped workspace version makes bun.lock
       # differ from package.json on every release, which a frozen install
