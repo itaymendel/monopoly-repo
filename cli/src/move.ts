@@ -4,6 +4,8 @@ import os from "os";
 import {
   git,
   getCurrentBranch,
+  getHeadHash,
+  getRootCommits,
   hasAnyCommits,
   hasUnmergedEntries,
   countCommits,
@@ -19,6 +21,11 @@ export interface MoveResult {
   targetRepo: string;
   targetFullPath: string;
   commitCount: number;
+  // Inputs for the optional `git replace --graft` hint: re-parenting each
+  // imported root onto the target tip linearizes the two histories so plain
+  // `git log`/`git bisect` (and stacked relay moves) see one continuous line.
+  graftRoots: string[];
+  graftOnto: string;
 }
 
 export function executeMove(args: MoveArgs, ctx: ValidatedContext): MoveResult {
@@ -36,13 +43,23 @@ export function executeMove(args: MoveArgs, ctx: ValidatedContext): MoveResult {
       restructureFile(extractDir, ctx.extractionPath, targetAs);
     }
 
+    // The imported roots exist in the extract clone before the fetch; git
+    // copies objects verbatim, so these SHAs are valid in the target repo too.
+    const graftRoots = getRootCommits(extractDir);
+
     mergeIntoTarget(extractDir, targetAs, ctx, commitCount);
+
+    // A --no-commit merge leaves HEAD untouched, so the target's tip is still
+    // the pre-move commit the imported history should be grafted onto.
+    const graftOnto = getHeadHash(ctx.targetRepoRoot);
 
     return {
       sourcePath: args.source,
       targetRepo: args.to,
       targetFullPath: `${args.to}/${targetAs}`,
       commitCount,
+      graftRoots,
+      graftOnto,
     };
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });

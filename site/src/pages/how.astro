@@ -410,6 +410,30 @@ git remote remove monopoly-temp               # cleanup</code></pre>
     </p>
   </section>
   <section>
+    <h2>6. Optional: one continuous history</h2>
+    <p>
+      Once you commit, <code>git log --follow</code> and <code>git blame</code>
+      already walk across the move. The one thing they don't do is collapse the
+      two starting commits into a single line — so plain <code>git log</code>,
+      <code>git bisect</code>, and stacked relay moves still see a fork.
+    </p>
+    <p>
+      To fix that, monopoly prints a ready-to-run
+      <code>git replace --graft</code> command after each move, with the
+      imported root and target tip already filled in:
+    </p>
+    <pre><code>git replace --graft &lt;imported-root&gt; &lt;target-tip&gt;   # re-parent, no rewrite
+git push origin 'refs/replace/*'                    # share it with the team
+git config --add remote.origin.fetch '+refs/replace/*:refs/replace/*'</code></pre>
+    <p>
+      A graft is an overlay ref, not a history rewrite: it never touches a
+      commit object. Delete it (<code>git replace -d</code>) and you're back to
+      the plain, still fully reachable, history. Replace refs don't travel with
+      a normal clone, which is why sharing needs the explicit push and fetch
+      config above.
+    </p>
+  </section>
+  <section>
     <h2>About <code>--allow-unrelated-histories</code></h2>
 
     <h3>What it means</h3>

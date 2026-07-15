@@ -1,6 +1,6 @@
 # monopoly
 
-Move code between git repositories including history, keeping `git log`, `git blame`, and `git bisect` working.
+Move code between git repositories with its full commit history. Once you commit the move, `git log --follow` and `git blame` walk straight back to the original commits.
 
 Supports moving from A->B->C, and even back to A.
 
@@ -80,6 +80,10 @@ Monopoly runs a sequence of git operations:
 6. Write seam metadata to `.git/MERGE_MSG`
 
 The merge commit acts as a traceable link between the old and new life of the code so all commits from the source are reachable in the target's history.
+
+## Optional: one continuous history
+
+After you commit, `git log --follow` and `git blame` already trace across the move. If you also want plain `git log` and `git bisect` to see one unbroken line — worth it when you chain moves across several repos — monopoly prints a ready-to-run `git replace --graft` command after each move. It re-parents the imported history onto the target's tip without rewriting a single commit, and you can share it with your team by pushing `refs/replace/*`. Delete the graft and you're back to the plain (still fully reachable) history — it's an overlay, never a rewrite.
 
 ## License
 
